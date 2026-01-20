@@ -66,3 +66,9 @@ Ensure you have the following installed:
 
 **1. Clone the repository**
 ```bash
+
+``` 
+
+Link to Figma Design
+
+https://www.figma.com/make/caHNfZZb1EszySAFMqeHLT/Student-Collaboration-Platform?t=BsRbbykyVj6PdmrP-1
