@@ -71,4 +71,4 @@ Ensure you have the following installed:
 
 Link to Figma Design
 
-https://www.figma.com/design/cdr0HeEpjgJDKrjQiMsWpV/Miva-Hubble?node-id=0-1&p=f&t=FHDpdj9CxnQxFOGg-0
+https://www.figma.com/make/caHNfZZb1EszySAFMqeHLT/Student-Collaboration-Platform?t=BsRbbykyVj6PdmrP-1
