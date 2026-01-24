@@ -66,3 +66,9 @@ Ensure you have the following installed:
 
 **1. Clone the repository**
 ```bash
+
+``` 
+
+Link to Figma Design
+
+https://www.figma.com/design/cdr0HeEpjgJDKrjQiMsWpV/Miva-Hubble?node-id=0-1&p=f&t=hyYHpwCyl124MBqN-0
