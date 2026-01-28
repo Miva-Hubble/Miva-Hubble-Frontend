@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./auth.css";
 
 import bigImg from "../../../assets/images/auth/ImageLarge.png";
