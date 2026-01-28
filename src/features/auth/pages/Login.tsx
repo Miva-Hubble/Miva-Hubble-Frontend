@@ -1,51 +1,95 @@
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import "./auth.css";
+
+import bigImg from "../../../assets/images/auth/ImageLarge.png";
+import leftImg from "../../../assets/images/auth/imageleft.png";
+import bottomImg from "../../../assets/images/auth/imageright.png";
+
+import logo from "../../../assets/images/logo/logo and name.png";
 
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   return (
-    <div>
-      <h3 className="text-xl font-medium text-center mb-6">Sign in to your account</h3>
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email address
-          </label>
+    <div className="auth-container">
+
+      {/* LEFT */}
+      <div className="auth-left">
+
+        {/* LOGO */}
+        <div className="auth-logo">
+          <img src={logo} alt="Miva Hubble Logo" />
+          <span>UniConnect</span>
+        </div>
+
+        <div className="auth-title">
+          <h1>Let's get started!</h1>
+          <p>
+            Join thousands of Miva students collaborating and succeeding together.
+          </p>
+        </div>
+
+        <div className="auth-images">
+          <img src={bigImg} alt="Students" />
+          <img src={leftImg} alt="Library" />
+          <img src={bottomImg} alt="Group" />
+        </div>
+
+      </div>
+
+
+      {/* RIGHT */}
+      <div className="auth-right">
+
+        <div className="auth-form">
+
+          <h2>Welcome back</h2>
+          <p>Sign in to continue your academic journey</p>
+
           <input
-            id="email"
-            name="email"
             type="email"
-            autoComplete="email"
-            required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="student@miva.university"
+            className="auth-input"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
-        </div>
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
+
           <input
-            id="password"
-            name="password"
             type="password"
-            autoComplete="current-password"
-            required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Password"
+            className="auth-input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-        </div>
-        <div>
-          <button
-            type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
+
+          <button className="auth-btn">
             Sign in
           </button>
+
+          <div className="auth-divider">or</div>
+
+          <button className="google-btn">
+            <img
+              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              width="18"
+            />
+            Continue with Google
+          </button>
+
+          <div className="auth-link">
+            Don't have an account? <span>Sign up</span>
+          </div>
+
+          <div className="verified-box">
+            ✔ Verified Students Only <br />
+            Email verification within 60 seconds
+          </div>
+
         </div>
-      </form>
-      <div className="mt-4 text-center text-sm">
-        <span className="text-gray-600">Don't have an account? </span>
-        <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
-          Sign up
-        </Link>
+
       </div>
+
     </div>
   );
 };
