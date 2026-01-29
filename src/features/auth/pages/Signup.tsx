@@ -1,64 +1,87 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import "./auth.css";
+
+import bigImg from "../../../assets/images/auth/ImageLarge.png";
+import leftImg from "../../../assets/images/auth/imageleft.png";
+import bottomImg from "../../../assets/images/auth/imageright.png";
+
+import logo from "../../../assets/images/logo/logo and name.png";
 
 const Signup = () => {
+  const [email, setEmail] = useState("");
+
   return (
-    <div>
-      <h3 className="text-xl font-medium text-center mb-6">Create your account</h3>
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Full Name
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="name"
-            required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
+    <div className="auth-container">
+
+
+      {/* LEFT */}
+      <div className="auth-left">
+
+        {/* LOGO */}
+        <div className="auth-logo">
+          <img src={logo} alt="Miva Hubble Logo" />
+          <span>UniConnect</span>
         </div>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email address
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
+
+        <div className="auth-title">
+          <h1>Let's get started!</h1>
+          <p>
+            Join thousands of Miva students collaborating and succeeding together.
+          </p>
         </div>
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
+
+        <div className="auth-images">
+          <img src={bigImg} alt="Students" />
+          <img src={leftImg} alt="Library" />
+          <img src={bottomImg} alt="Group" />
         </div>
-        <div>
-          <button
-            type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Sign up
-          </button>
-        </div>
-      </form>
-      <div className="mt-4 text-center text-sm">
-        <span className="text-gray-600">Already have an account? </span>
-        <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
-          Sign in
-        </Link>
+
       </div>
+
+
+      {/* RIGHT */}
+      <div className="auth-right">
+
+        <div className="auth-form">
+
+          <h2>Join today</h2>
+          <p>Start collaborating with fellow Miva students</p>
+
+          <input
+            type="email"
+            placeholder="student@miva.university"
+            className="auth-input"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <button className="auth-btn">
+            Create account
+          </button>
+
+          <div className="auth-divider">or</div>
+
+          <button className="google-btn">
+            <img
+              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              width="18"
+            />
+            Continue with Google
+          </button>
+
+          <div className="auth-link">
+            Already have an account? <span>Sign in</span>
+          </div>
+
+          <div className="verified-box">
+            ✔ Verified Students Only <br />
+            Email verification within 60 seconds
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
   );
 };
