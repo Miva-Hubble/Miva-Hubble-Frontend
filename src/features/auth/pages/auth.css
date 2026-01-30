@@ -1,0 +1,179 @@
+/* AUTH PAGES STYLING */
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(to right, #0f2a44, #081a2f);
+  color: white;
+  font-family: Inter, sans-serif;
+}
+
+/* LEFT SECTION */
+
+.auth-left {
+  width: 50%;
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.auth-title {
+  margin-top: 40px;
+}
+
+.auth-title h1 {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.auth-title p {
+  color: #cbd5e1;
+}
+
+/*Logo aand Name Image*/
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.auth-logo img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+
+/* IMAGE GRID */
+
+.auth-images {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.auth-images img {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+/* RIGHT SECTION */
+
+.auth-right {
+  width: 50%;
+  background: #081a2f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-form {
+  width: 380px;
+}
+
+.auth-form h2 {
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+.auth-form p {
+  color: #94a3b8;
+  margin-bottom: 25px;
+}
+
+/* INPUTS */
+
+.auth-input {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  color: white;
+  outline: none;
+}
+
+.auth-input::placeholder {
+  color: #64748b;
+}
+
+/* BUTTON */
+
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.auth-btn:hover {
+  background: #2563eb;
+}
+
+/* GOOGLE */
+
+.google-btn {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #1e293b;
+  background: transparent;
+  color: white;
+  border-radius: 8px;
+  margin-top: 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+}
+
+/* DIVIDER */
+
+.auth-divider {
+  text-align: center;
+  margin: 20px 0;
+  color: #64748b;
+}
+
+/* LINKS */
+
+.auth-link {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.auth-link span {
+  color: #3b82f6;
+  cursor: pointer;
+}
+
+/* VERIFIED */
+
+.verified-box {
+  margin-top: 25px;
+  background: #020617;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #94a3b8;
+}
