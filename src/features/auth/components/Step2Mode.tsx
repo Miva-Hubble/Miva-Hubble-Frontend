@@ -18,20 +18,30 @@ interface Step2ModeProps {
 const Step2Mode = ({ formData, onModeChange, onComplete }: Step2ModeProps) => {
   return (
     <>
-      <div className="text-center mb-8">
-        <CustomText variant="h2" weight="bold" align="center" className="mb-2">
+      <div className="text-center mb-6 md:mb-8">
+        <CustomText
+          variant="h2"
+          weight="bold"
+          align="center"
+          className="mb-2 text-xl md:text-2xl"
+        >
           Choose your default mode
         </CustomText>
-        <CustomText variant="body" color="secondary" align="center">
+        <CustomText
+          variant="body"
+          color="secondary"
+          align="center"
+          className="text-sm md:text-base"
+        >
           You can change this anytime and control visibility per post
         </CustomText>
       </div>
 
-      <div className="space-y-4 mb-8">
+      <div className="space-y-3 md:space-y-4 mb-6 md:mb-8">
         <button
           type="button"
           onClick={() => onModeChange("anonymous")}
-          className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+          className={`w-full p-3 md:p-4 rounded-lg border-2 text-left transition-all ${
             formData.defaultMode === "anonymous"
               ? "border-[#6366F1] bg-[#EEF2FF]"
               : "border-[#E2E8F0] bg-white hover:border-[#CBD5E1]"
@@ -40,26 +50,40 @@ const Step2Mode = ({ formData, onModeChange, onComplete }: Step2ModeProps) => {
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-start gap-2 mb-2">
-                <EyeOff />
-                <CustomText variant="body" weight="semibold" color="black">
+                <EyeOff className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                <CustomText
+                  variant="body"
+                  weight="semibold"
+                  color="black"
+                  className="text-sm md:text-base"
+                >
                   Anonymous Mode
                 </CustomText>
                 <span className="mr-auto bg-[#6366F1] text-white text-xs font-semibold px-2 py-1 rounded">
                   Recommended
                 </span>
               </div>
-              <CustomText variant="small" color="secondary">
+              <CustomText
+                variant="small"
+                color="secondary"
+                className="text-xs md:text-sm"
+              >
                 Post and interact as a Hubblite. Your identity stays private.
               </CustomText>
-              <div className="bg-white px-4 p-2 w-full rounded-md">
+              <div className="bg-white px-3 md:px-4 py-2 w-full rounded-md">
                 <CustomText
                   variant="caption"
                   color="secondary"
-                  className="opacity-50 mb-1"
+                  className="opacity-50 mb-1 text-xs md:text-xs"
                 >
                   How others see you:
                 </CustomText>
-                <CustomText variant="small" color="primary" weight="semibold">
+                <CustomText
+                  variant="small"
+                  color="primary"
+                  weight="semibold"
+                  className="text-xs md:text-sm"
+                >
                   Hubblite • Level {formData.currentLevel}
                 </CustomText>
               </div>
@@ -79,7 +103,7 @@ const Step2Mode = ({ formData, onModeChange, onComplete }: Step2ModeProps) => {
         <button
           type="button"
           onClick={() => onModeChange("identified")}
-          className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+          className={`w-full p-3 md:p-4 rounded-lg border-2 text-left transition-all ${
             formData.defaultMode === "identified"
               ? "border-[#6366F1] bg-[#EEF2FF]"
               : "border-[#E2E8F0] bg-white hover:border-[#CBD5E1]"
@@ -88,24 +112,38 @@ const Step2Mode = ({ formData, onModeChange, onComplete }: Step2ModeProps) => {
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Eye />
-                <CustomText variant="body" weight="semibold" color="black">
+                <Eye className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                <CustomText
+                  variant="body"
+                  weight="semibold"
+                  color="black"
+                  className="text-sm md:text-base"
+                >
                   Identified Mode
                 </CustomText>
               </div>
-              <CustomText variant="small" color="secondary">
+              <CustomText
+                variant="small"
+                color="secondary"
+                className="text-xs md:text-sm"
+              >
                 Use your real name and profile. Build your reputation and
                 connect openly.
               </CustomText>
-              <div className="bg-white px-4 p-2 w-full rounded-md">
+              <div className="bg-white px-3 md:px-4 py-2 w-full rounded-md">
                 <CustomText
                   variant="caption"
                   color="secondary"
-                  className="opacity-50 mb-1"
+                  className="opacity-50 mb-1 text-xs md:text-xs"
                 >
                   How others see you:
                 </CustomText>
-                <CustomText variant="small" color="primary" weight="semibold">
+                <CustomText
+                  variant="small"
+                  color="primary"
+                  weight="semibold"
+                  className="text-xs md:text-sm"
+                >
                   Student • Level {formData.currentLevel}
                 </CustomText>
               </div>
@@ -122,17 +160,23 @@ const Step2Mode = ({ formData, onModeChange, onComplete }: Step2ModeProps) => {
           </div>
         </button>
 
-        <div className="mt-4 bg-[#DBEAFE] border border-[#BFDBFE] rounded-lg p-4 flex gap-3">
-          <Info color="#1E40AF" />
+        <div className="mt-4 bg-[#DBEAFE] border border-[#BFDBFE] rounded-lg p-3 md:p-4 flex gap-3">
+          <Info
+            color="#1E40AF"
+            className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0 mt-0.5"
+          />
           <div>
             <CustomText
               variant="small"
               weight="semibold"
-              className="text-[#1E40AF] font-bold"
+              className="text-[#1E40AF] font-bold text-xs md:text-sm"
             >
               Pro tip:
             </CustomText>
-            <CustomText variant="small" className="text-[#1E40AF]">
+            <CustomText
+              variant="small"
+              className="text-[#1E40AF] text-xs md:text-sm"
+            >
               You can toggle between modes anytime, and even choose different
               modes for different posts!
             </CustomText>

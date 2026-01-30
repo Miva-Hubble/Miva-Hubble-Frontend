@@ -27,7 +27,7 @@ const Step1Profile = ({
 }: Step1ProfileProps) => {
   return (
     <>
-      <div className="text-center mb-8">
+      <div className="text-center mb-6 md:mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-[#EEF2FF] rounded-md mb-4">
           <User color="#6366F1" />
         </div>
@@ -35,17 +35,22 @@ const Step1Profile = ({
           variant="h2"
           weight="bold"
           align="center"
-          className="mb-2"
+          className="mb-2 text-xl md:text-2xl"
           color="primary"
         >
           Set up your profile
         </CustomText>
-        <CustomText variant="body" color="secondary" align="center">
+        <CustomText
+          variant="body"
+          color="secondary"
+          align="center"
+          className="text-sm md:text-base"
+        >
           Help your peers find and connect with you
         </CustomText>
       </div>
 
-      <form className="space-y-6">
+      <form className="space-y-4 md:space-y-6">
         <div>
           <label htmlFor="displayName" className="block mb-2">
             <CustomText variant="label" weight="semibold" color="black">
@@ -95,13 +100,13 @@ const Step1Profile = ({
               Current Level
             </CustomText>
           </label>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
             {levels.map((level) => (
               <button
                 key={level}
                 type="button"
                 onClick={() => onLevelChange(level)}
-                className={`p-3 rounded-lg border-2 font-semibold transition-all ${
+                className={`p-2 md:p-3 rounded-lg border-2 font-semibold transition-all text-sm md:text-base ${
                   formData.currentLevel === level
                     ? "border-[#6366F1] bg-blue-50 text-blue-600"
                     : "border-[#E2E8F0] bg-white text-[#64748B] hover:border-[#CBD5E1]"
@@ -118,7 +123,7 @@ const Step1Profile = ({
           type="button"
           variant="primary"
           size="md"
-          className="w-full mt-8"
+          className="w-full mt-6 md:mt-8"
           disabled={!formData.displayName || !formData.department}
         >
           Continue

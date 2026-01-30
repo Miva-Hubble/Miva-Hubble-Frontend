@@ -60,13 +60,13 @@ const ProfileSetup = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <div className="max-w-[50%] w-full">
-          <div className="my-8 pt-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-6">
+        <div className="w-full max-w-full md:max-w-[50%] lg:max-w-[50%]">
+          <div className="my-6 pt-6 md:my-8 md:pt-8">
             <ProgressBar currentStep={currentStep} totalSteps={2} />
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-8">
+          <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
             {currentStep === 1 ? (
               <Step1Profile
                 formData={formData}
