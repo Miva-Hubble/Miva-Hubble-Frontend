@@ -2,13 +2,7 @@ import { Eye, EyeOff, Info } from "lucide-react";
 import CustomButton from "../../../components/ui/CustomButton";
 import CustomText from "../../../components/ui/CustomText";
 import { ModeCard } from "../../../components/ui/ProfileModeCard";
-
-interface ProfileSetupData {
-  displayName: string;
-  department: string;
-  currentLevel: string;
-  defaultMode: "anonymous" | "identified";
-}
+import type { ProfileSetupData } from "../../../types/ProfileSetup";
 
 interface Step2ModeProps {
   formData: ProfileSetupData;

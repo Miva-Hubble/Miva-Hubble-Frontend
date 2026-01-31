@@ -2,13 +2,7 @@ import { User } from "lucide-react";
 import CustomButton from "../../../components/ui/CustomButton";
 import CustomText from "../../../components/ui/CustomText";
 import { departments, levels } from "../../../constants/profile";
-
-interface ProfileSetupData {
-  displayName: string;
-  department: string;
-  currentLevel: string;
-  defaultMode: "anonymous" | "identified";
-}
+import type { ProfileSetupData } from "../../../types/ProfileSetup";
 
 interface Step1ProfileProps {
   formData: ProfileSetupData;

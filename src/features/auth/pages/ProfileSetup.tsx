@@ -4,13 +4,7 @@ import Step1Profile from "../components/Step1Profile";
 import Step2Mode from "../components/Step2Mode";
 import ProgressBar from "../../../components/ui/ProgressBar";
 import { useNavigate } from "react-router-dom";
-
-interface ProfileSetupData {
-  displayName: string;
-  department: string;
-  currentLevel: string;
-  defaultMode: "anonymous" | "identified";
-}
+import type { ProfileSetupData } from "../../../types/ProfileSetup";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
