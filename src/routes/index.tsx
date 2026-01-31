@@ -12,6 +12,7 @@ import NotFoundPage from "../pages/NotFound";
 import LoginPage from "../features/auth/pages/Login";
 import SignupPage from "../features/auth/pages/Signup";
 import OtpVerificationPage from "../features/auth/pages/OtpVerification";
+import ProfileSetupPage from "../features/auth/pages/ProfileSetup";
 import DashboardPage from "../features/dashboard/pages/Dashboard";
 import FeedPage from "../features/feed/pages/Feed";
 import ResourcesPage from "../features/resources/pages/Vault";
@@ -30,6 +31,7 @@ export const AppRoutes = () => {
         <Route path="/signup" element={<SignupPage />} />
       </Route>
       <Route path="/otp-verification" element={<OtpVerificationPage />} />
+      <Route path="/profile-setup" element={<ProfileSetupPage />} />
 
       {/* PRIVATE ROUTES */}
       <Route element={<ProtectedRoute />}>
