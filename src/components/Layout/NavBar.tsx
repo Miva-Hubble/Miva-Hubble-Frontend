@@ -1,10 +1,19 @@
 import { ArrowLeft } from "lucide-react";
 import logo from "../../assets/miva-hubble-logo.png";
+import { useNavigate } from "react-router";
 
 export const Navbar = () => {
+  const navigate = useNavigate();
+  const handleBack = () => {
+    navigate("/login");
+  };
+
   return (
     <nav className="absolute top-0 left-0 w-full p-6 flex items-center justify-between border-b border-slate-700/50">
-      <button className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors cursor-pointer">
+      <button
+        onClick={handleBack}
+        className="flex items-center gap-2 text-slate-400 transition-colors cursor-pointer"
+      >
         <ArrowLeft className="w-5 h-5" />
         <span className="font-medium">Back</span>
       </button>

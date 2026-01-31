@@ -63,6 +63,7 @@ const ProfileSetup = () => {
       <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-6">
         <div className="w-full max-w-full md:max-w-[50%] lg:max-w-[50%]">
           <div className="my-6 pt-6 md:my-8 md:pt-8">
+            <br />
             <ProgressBar currentStep={currentStep} totalSteps={2} />
           </div>
 

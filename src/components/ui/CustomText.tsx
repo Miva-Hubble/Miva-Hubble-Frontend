@@ -75,7 +75,7 @@ const getColorStyles = (color: TextColor): string => {
     success: "text-green-600",
     danger: "text-red-600",
     warning: "text-yellow-600",
-    info: "text-blue-500",
+    info: "text-[#1E40AF]",
     gray: "text-gray-700",
     white: "text-white",
     black: "text-black",
