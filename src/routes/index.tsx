@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+﻿import { Routes, Route } from "react-router-dom";
 
 // Layouts
 import AppLayout from "../components/Layout/AppLayout";
@@ -13,6 +13,7 @@ import LoginPage from "../features/auth/pages/Login";
 import SignupPage from "../features/auth/pages/Signup";
 import OtpVerificationPage from "../features/auth/pages/OtpVerification";
 import ProfileSetupPage from "../features/auth/pages/ProfileSetup";
+import ForgotPasswordPage from "../features/auth/pages/ForgotPassword";
 import DashboardPage from "../features/dashboard/pages/Dashboard";
 import FeedPage from "../features/feed/pages/Feed";
 import ResourcesPage from "../features/resources/pages/Vault";
@@ -29,6 +30,7 @@ export const AppRoutes = () => {
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       </Route>
       <Route path="/otp-verification" element={<OtpVerificationPage />} />
       <Route path="/profile-setup" element={<ProfileSetupPage />} />
