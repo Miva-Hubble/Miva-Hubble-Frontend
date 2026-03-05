@@ -5,11 +5,10 @@ import AppLayout from "../components/Layout/AppLayout";
 import AuthLayout from "../components/Layout/AuthLayout";
 
 // Pages
-import LandingPage from "../pages/Landing";
-import NotFoundPage from "../pages/NotFound";
+import LandingPage from "../features/landingPage/pages/Landing";
+import NotFoundPage from "../features/landingPage/pages/NotFound";
 
 // Feature Pages
-import LoginPage from "../features/auth/pages/Login";
 import SignupPage from "../features/auth/pages/Signup";
 import OtpVerificationPage from "../features/auth/pages/OtpVerification";
 import ProfileSetupPage from "../features/auth/pages/ProfileSetup";
@@ -28,7 +27,7 @@ export const AppRoutes = () => {
 
       {/* AUTH ROUTES */}
       <Route element={<AuthLayout />}>
-        <Route path="/login" element={<LoginPage />} />
+       
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       </Route>
