@@ -1,4 +1,4 @@
-import { User } from "lucide-react";
+﻿import { User } from "lucide-react";
 import CustomButton from "../../../components/ui/CustomButton";
 import CustomText from "../../../components/ui/CustomText";
 import { departments, levels } from "../../../constants/profile";
@@ -22,15 +22,15 @@ const Step1Profile = ({
   return (
     <>
       <div className="text-center mb-6 md:mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-[#EEF2FF] rounded-md mb-4">
-          <User color="#6366F1" />
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-800 rounded-md mb-4">
+          <User className="text-cyan-500" />
         </div>
         <CustomText
           variant="h2"
           weight="bold"
           align="center"
           className="mb-2 text-xl md:text-2xl"
-          color="primary"
+          color="white"
         >
           Set up your profile
         </CustomText>
@@ -47,7 +47,7 @@ const Step1Profile = ({
       <form className="space-y-4 md:space-y-6">
         <div>
           <label htmlFor="displayName" className="block mb-2">
-            <CustomText variant="label" weight="semibold" color="black">
+            <CustomText variant="label" weight="semibold" color="white">
               Display Name
             </CustomText>
           </label>
@@ -57,7 +57,7 @@ const Step1Profile = ({
             placeholder="How should we call you?"
             value={formData.displayName}
             onChange={onDisplayNameChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 bg-slate-900 text-white placeholder-slate-500 border border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
           />
           <CustomText
             variant="caption"
@@ -70,7 +70,7 @@ const Step1Profile = ({
 
         <div>
           <label htmlFor="department" className="block mb-2">
-            <CustomText variant="label" weight="semibold" color="black">
+            <CustomText variant="label" weight="semibold" color="white">
               Department
             </CustomText>
           </label>
@@ -78,7 +78,7 @@ const Step1Profile = ({
             id="department"
             value={formData.department}
             onChange={onDepartmentChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            className="w-full px-4 py-2 bg-slate-900 text-white border border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
           >
             {departments.map((dept) => (
               <option key={dept} value={dept}>
@@ -90,7 +90,7 @@ const Step1Profile = ({
 
         <div>
           <label className="block mb-4">
-            <CustomText variant="label" weight="semibold" color="black">
+            <CustomText variant="label" weight="semibold" color="white">
               Current Level
             </CustomText>
           </label>
@@ -102,8 +102,8 @@ const Step1Profile = ({
                 onClick={() => onLevelChange(level)}
                 className={`p-2 md:p-3 rounded-lg border-2 font-semibold transition-all text-sm md:text-base ${
                   formData.currentLevel === level
-                    ? "border-[#6366F1] bg-blue-50 text-blue-600"
-                    : "border-[#E2E8F0] bg-white text-[#64748B] hover:border-[#CBD5E1]"
+                    ? "border-cyan-500 bg-cyan-500/10 text-cyan-300"
+                    : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600"
                 }`}
               >
                 {level}
@@ -117,7 +117,7 @@ const Step1Profile = ({
           type="button"
           variant="primary"
           size="md"
-          className="w-full mt-6 md:mt-8"
+          className="w-full mt-6 md:mt-8 bg-cyan-600 hover:bg-cyan-500 focus:ring-cyan-500"
           disabled={!formData.displayName || !formData.department}
         >
           Continue
@@ -128,3 +128,5 @@ const Step1Profile = ({
 };
 
 export default Step1Profile;
+
+
