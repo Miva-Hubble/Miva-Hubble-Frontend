@@ -39,10 +39,9 @@ export const AppRoutes = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/resources" element={<ResourcesPage />} />
-          {/* Add more app features here */}
+          <Route path="/feed" element={<FeedPage />} />          {/* Add more app features here */}
         </Route>
+        <Route path="/resources" element={<ResourcesPage />} />
       </Route>
 
       {/* CATCH ALL */}
