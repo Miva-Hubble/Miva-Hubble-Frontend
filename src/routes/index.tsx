@@ -16,6 +16,8 @@ import ProfileSetupPage from "../features/auth/pages/ProfileSetup";
 import DashboardPage from "../features/dashboard/pages/Dashboard";
 import FeedPage from "../features/feed/pages/Feed";
 import ResourcesPage from "../features/resources/pages/Vault";
+import AskPage from "../features/ask/pages/Ask";
+import QuestionDetailPage from "../features/ask/pages/QuestionDetail";
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -40,6 +42,8 @@ export const AppRoutes = () => {
           <Route path="/feed" element={<FeedPage />} />          {/* Add more app features here */}
         </Route>
         <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/ask" element={<AskPage />} />
+        <Route path="/ask/:id" element={<QuestionDetailPage />} />
       </Route>
 
       {/* CATCH ALL */}
