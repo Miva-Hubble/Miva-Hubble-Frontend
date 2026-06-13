@@ -44,10 +44,9 @@ export const AppRoutes = () => {
           <Route path="/feed" element={<FeedPage />} />          {/* Add more app features here */}
         </Route>
         <Route path="/resources" element={<ResourcesPage />} />
-        <Route path="/ask" element={<AskPage />} />
-        <Route path="/ask/:id" element={<QuestionDetailPage />} />
-      </Route>
-
+        </Route>
+      <Route path="/ask" element={<AskPage />} />
+      <Route path="/ask/:id" element={<QuestionDetailPage />} />
       {/* CATCH ALL */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
