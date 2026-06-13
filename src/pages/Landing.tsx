@@ -9,7 +9,7 @@ import {
   Zap,
   AlertCircle,
 } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
+// import { FcGoogle } from "react-icons/fc";
 
 function ImageWithFallback({
   fallbackSrc,
@@ -417,7 +417,7 @@ export default function LandingPage() {
                   // window.location.href = import.meta.env.VITE_OAUTH_GOOGLE_URL
                 }}
               >
-                <FcGoogle className="w-5 h-5" />
+                {/* <FcGoogle className="w-5 h-5" /> */}
                 Continue with Google
               </motion.button>
             </form>
