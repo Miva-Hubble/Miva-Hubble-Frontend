@@ -1,11 +1,11 @@
 import { ArrowLeft } from "lucide-react";
-import logo from "../../assets/miva-hubble-logo.png";
-import { useNavigate } from "react-router";
+import logo from "../assets/miva-hubble-logo.png";
+import { useNavigate } from "react-router-dom";
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const handleBack = () => {
-    navigate("/login");
+    navigate("/");
   };
 
   return (

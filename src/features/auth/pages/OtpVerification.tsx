@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { ShieldCheck, Shield } from "lucide-react";
-import { Navbar } from "../../../components/Layout/NavBar";
+import { Navbar } from "../components/NavBar";
+
+
 
 const OtpVerification = () => {
   const [otp, setOtp] = useState(Array(6).fill(""));

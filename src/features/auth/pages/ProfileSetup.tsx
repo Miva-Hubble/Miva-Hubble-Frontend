@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navbar } from "../../../components/Layout/NavBar";
+import { Navbar } from "../components/NavBar";
 import Step1Profile from "../components/Step1Profile";
 import Step2Mode from "../components/Step2Mode";
 import ProgressBar from "../../../components/ui/ProgressBar";
