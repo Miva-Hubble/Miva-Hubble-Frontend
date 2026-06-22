@@ -4,7 +4,6 @@ import { Link, useLocation } from "react-router-dom";
 import type { AskTheme } from "../../features/ask/constants/theme";
 
 type AskNavbarProps = {
-  // theme: AskTheme;
   NavTheme: AskTheme;
   isDarkMode: boolean;
   onToggleTheme: () => void;

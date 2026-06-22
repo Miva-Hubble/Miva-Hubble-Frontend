@@ -60,7 +60,7 @@ export default function QuestionDetail() {
       }}
     >
       <AskNavbar
-        theme={theme}
+        NavTheme={theme}
         isDarkMode={isDarkMode}
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
       />
