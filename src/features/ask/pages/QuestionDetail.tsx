@@ -8,7 +8,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import AnswerCard from "../components/AnswerCard";
-import AskNavbar from "../components/AskNavbar";
+import AskNavbar from "../../../components/ui/MainNavbar";
 import { getAskTheme } from "../constants/theme";
 import { useQuestionsStore } from "../store/questionsStore";
 

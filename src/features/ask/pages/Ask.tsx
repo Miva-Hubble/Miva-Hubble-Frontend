@@ -2,13 +2,14 @@ import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import AskNavbar from "../components/AskNavbar";
+// import AskNavbar from "../../../components/ui/MainNavbar";
 import AskQuestionModal from "../components/AskQuestionModal";
 import FilterTabs from "../components/FilterTabs";
 import QuestionCard from "../components/QuestionCard";
 import { getAskTheme } from "../constants/theme";
 import { useQuestionsStore } from "../store/questionsStore";
 import type { QuestionFilter } from "../types/question";
+import MainNavbar from "../../../components/ui/MainNavbar";
 
 export default function Ask() {
   const navigate = useNavigate();
@@ -57,8 +58,8 @@ export default function Ask() {
         color: theme.textPrimary,
       }}
     >
-      <AskNavbar
-        theme={theme}
+      <MainNavbar
+        NavTheme={getAskTheme(isDarkMode)}
         isDarkMode={isDarkMode}
         onToggleTheme={() => setIsDarkMode(!isDarkMode)}
       />
@@ -170,5 +171,3 @@ export default function Ask() {
     </div>
   );
 }
-
-// To be deleted, just to trigger vercel

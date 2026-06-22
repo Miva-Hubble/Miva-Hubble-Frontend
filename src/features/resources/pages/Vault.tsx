@@ -4,13 +4,10 @@ import { useNavigate } from "react-router";
 import MOCK_RESOURCES from "../constants/mock_resources";
 import UploadResourceModal from "../components/UploadResourceModal";
 import { getVaultTheme } from "../constants/theme";
+import { getAskTheme } from "../../ask/constants/theme";
+import MainNavbar from "../../../components/ui/MainNavbar";
 import { 
   Library,
-  Search,
-  Upload,
-  Bell,
-  Sun,
-  Moon,
   Home,
   UserCircle,
   Sparkles,
@@ -29,6 +26,8 @@ import {
   Download,
   FileCode,
   File,
+  Search,
+  Upload
 } from "lucide-react";
 import { ImageWithFallback } from "../components/ImageWithFallback";
 
@@ -43,7 +42,7 @@ export default function Vault() {
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const theme = getVaultTheme(isDarkMode);
-
+    
   const getFileIcon = (fileType: string) => {
     switch (fileType.toUpperCase()) {
       case "PDF":
@@ -68,110 +67,11 @@ export default function Vault() {
       }}
     >
       {/* Navbar */}
-      <motion.nav
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y:0 }}
-        transition={{ duration: 0.5}}
-        className="sticky top-0 z-50 border-b backdrop=blur-lg"
-        style={{
-          backgroundColor: theme.surface + "CC",
-          borderColor: theme.border,
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between gap-4">
-            {/* Logo */}
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-primary to-accent flex items-center justify-center">
-                <Library className="w-6 h-6 text-white rounded-2xl px-6 py-6" />
-              </div>
-              <span className="hidden sm:block text-xl font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
-                Resource Vault
-              </span>
-            </div>
-
-            {/* Search Bar */}
-            <div className="flex-1 max-w-xl">
-              <div className="relative">
-                <Search 
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5"
-                  style={{ color: theme.textMuted}}
-                />
-                <input 
-                  type="text"
-                  placeholder="Search by course, topic, or keyword..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-2.5 rounded-full border focus:outline-none focus:ring-2 transition-all duration-200"
-                  style={{
-                    backgroundColor: theme.input,
-                    borderColor: theme.border,
-                    color: theme.textPrimary,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Right Side */}
-            <div className="flex items-center gap-2">
-              {/* Upload Button */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowUploadModal(true)}
-                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm"
-                style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
-              >
-                <Upload className="w-4 h-4" />
-                <span>Upload</span>
-              </motion.button>
-
-              {/* Notification Icon */}
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale:0.9 }}
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 relative"
-                style={{ backgroundColor: theme.accentBg}}
-              >
-                <Bell 
-                  className="w-5 h-5"
-                  style={{ color: theme.textSecondary}}/>                  
-              </motion.button>
-
-              {/* Profile Icon */}
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => navigate("/profile")}
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 overflow-hidden border-2"
-                style={{ borderColor: theme.primary }}
-              >
-                <img 
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop" 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
-                />
-              </motion.button>
-
-              {/* Theme Toggle */}
-              <motion.button              
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200"
-                style={{ backgroundColor: theme.primary}}
-              >
-                {isDarkMode ? (
-                  <Sun className="w-5 h-5 text-white" />
-                ) : (
-                  <Moon className="w-5 h-5 text-white" />
-                )}
-              </motion.button>
-            </div>
-          </div>
-        </div>
-      </motion.nav>
-
+      <MainNavbar 
+        NavTheme={getAskTheme(isDarkMode)}
+        isDarkMode={isDarkMode}
+        onToggleTheme={() => setIsDarkMode(!isDarkMode)}
+      />
     <div className="flex w-full max-w-7xl mx-auto">
       {/* Sidebar */}
       <motion.aside
@@ -384,6 +284,44 @@ export default function Vault() {
             Your academic knowledge repository - Explore, learn, and share 
           </p>
         </motion.div>
+
+        {/* Search + Upload */}
+        <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="flex items-center gap-3 mb-4"
+            >
+              <div className="flex-1 relative">
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: theme.textMuted }}
+                />
+                <input
+                  type="text"
+                  placeholder="Search by course, topic, or keyword..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: theme.cardBg,
+                    borderColor: theme.border,
+                    color: theme.textPrimary,
+                  }}
+                />
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowUploadModal(true)}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold shrink-0"
+                style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
+              >
+                <Upload className="w-4 h-4" />
+                <span className="hidden sm:inline">Upload Resource</span>
+                <span className="sm:hidden">Upload</span>
+              </motion.button>
+            </motion.div>
 
         {/* Filter Bar */}
         <motion.div 

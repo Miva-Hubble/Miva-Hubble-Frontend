@@ -1,10 +1,11 @@
 import { motion } from "motion/react";
-import { BookOpen, Moon, Sun, UserCircle } from "lucide-react";
+import { BookOpen, Moon, Sun, UserCircle, Bell } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import type { AskTheme } from "../constants/theme";
+import type { AskTheme } from "../../features/ask/constants/theme";
 
 type AskNavbarProps = {
-  theme: AskTheme;
+  // theme: AskTheme;
+  NavTheme: AskTheme;
   isDarkMode: boolean;
   onToggleTheme: () => void;
 };
@@ -17,7 +18,7 @@ const NAV_LINKS = [
   { label: "Leaderboard", path: "#", disabled: true },
 ] as const;
 
-export default function AskNavbar({ theme, isDarkMode, onToggleTheme }: AskNavbarProps) {
+export default function MainNavbar({ NavTheme, isDarkMode, onToggleTheme }: AskNavbarProps) {
   const location = useLocation();
 
   return (
@@ -27,8 +28,8 @@ export default function AskNavbar({ theme, isDarkMode, onToggleTheme }: AskNavba
       transition={{ duration: 0.4 }}
       className="sticky top-0 z-50 border-b backdrop-blur-lg"
       style={{
-        backgroundColor: theme.surface + "E6",
-        borderColor: theme.border,
+        backgroundColor: NavTheme.surface + "E6",
+        borderColor: NavTheme.border,
       }}
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3">
@@ -37,15 +38,15 @@ export default function AskNavbar({ theme, isDarkMode, onToggleTheme }: AskNavba
           <Link to="/feed" className="flex items-center gap-2.5 shrink-0">
             <div
               className="w-9 h-9 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: theme.primary }}
+              style={{ backgroundColor: NavTheme.primary }}
             >
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <span className="hidden sm:flex items-baseline gap-0.5">
-              <span className="text-base font-bold" style={{ color: theme.textPrimary }}>
+              <span className="text-base font-bold" style={{ color: NavTheme.textPrimary }}>
                 MIVA
               </span>
-              <span className="text-base font-bold" style={{ color: theme.primary }}>
+              <span className="text-base font-bold" style={{ color: NavTheme.primary }}>
                 HUBBLE
               </span>
             </span>
@@ -61,7 +62,7 @@ export default function AskNavbar({ theme, isDarkMode, onToggleTheme }: AskNavba
                   <span
                     key={link.label}
                     className="px-3 py-1.5 text-sm font-medium cursor-not-allowed opacity-40"
-                    style={{ color: theme.textMuted }}
+                    style={{ color: NavTheme.textMuted }}
                   >
                     {link.label}
                   </span>
@@ -74,7 +75,7 @@ export default function AskNavbar({ theme, isDarkMode, onToggleTheme }: AskNavba
                   to={link.path}
                   className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors duration-200"
                   style={{
-                    color: isActive ? theme.primary : theme.textSecondary,
+                    color: isActive ? NavTheme.primary : NavTheme.textSecondary,
                     fontWeight: isActive ? 600 : 500,
                   }}
                 >
@@ -91,13 +92,13 @@ export default function AskNavbar({ theme, isDarkMode, onToggleTheme }: AskNavba
               whileTap={{ scale: 0.92 }}
               onClick={onToggleTheme}
               className="w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200"
-              style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}` }}
+              style={{ backgroundColor: NavTheme.cardBg, border: `1px solid ${NavTheme.border}` }}
               aria-label="Toggle theme"
             >
               {isDarkMode ? (
-                <Sun className="w-4 h-4" style={{ color: theme.textSecondary }} />
+                <Sun className="w-4 h-4" style={{ color: NavTheme.textSecondary }} />
               ) : (
-                <Moon className="w-4 h-4" style={{ color: theme.textSecondary }} />
+                <Moon className="w-4 h-4" style={{ color: NavTheme.textSecondary }} />
               )}
             </motion.button>
 
@@ -105,10 +106,19 @@ export default function AskNavbar({ theme, isDarkMode, onToggleTheme }: AskNavba
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.92 }}
               className="w-9 h-9 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}` }}
+              style={{ backgroundColor: NavTheme.cardBg, border: `1px solid ${NavTheme.border}` }}
               aria-label="Profile"
             >
-              <UserCircle className="w-5 h-5" style={{ color: theme.textSecondary }} />
+              <UserCircle className="w-5 h-5" style={{ color: NavTheme.textSecondary }} />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: NavTheme.cardBg, border: `1px solid ${NavTheme.border}` }}
+              aria-label="Notification-Bell"
+            >
+              <Bell className="w-5 h-5" style={{ color: NavTheme.textSecondary }} />
             </motion.button>
           </div>
         </div>

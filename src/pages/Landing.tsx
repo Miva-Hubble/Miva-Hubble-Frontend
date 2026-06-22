@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, type ImgHTMLAttributes } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -7,9 +7,7 @@ import {
   GraduationCap,
   BookOpen,
   Zap,
-  AlertCircle,
 } from "lucide-react";
-// import { FcGoogle } from "react-icons/fc";
 
 function ImageWithFallback({
   fallbackSrc,
@@ -31,482 +29,268 @@ function ImageWithFallback({
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isSignIn, setIsSignIn] = useState(false);
-  const [emailError, setEmailError] = useState("");
 
-  const validateMivaEmail = (value: string): boolean =>
-    /^student@miva\.edu\.ng$/i.test(value);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEmailError("");
-
-    if (!isSignIn) {
-      if (!validateMivaEmail(email)) {
-        setEmailError("Please use your Miva university email address");
-        return;
-      }
-      // TODO: await auth.requestOtp({ email })
-      navigate("/otp-verification", { state: { email } });
-    } else {
-      // TODO: await auth.signIn({ email, password })
+  const handleGoogleAuth = () => {
+    if (isSignIn) {
+      console.log("Triggering Google OAuth Flow for Sign In");
       navigate("/dashboard");
+    } else {
+      console.log("Triggering Google OAuth Flow for Sign Up");
+      navigate("/profile-setup");
     }
   };
 
-  const handleForgotPassword = () => {
-    navigate("/forgot-password");
-  };
-
   return (
-    <div
-      className="min-h-screen flex relative"
-      style={{
-        fontFamily: "Arimo, sans-serif",
-        backgroundColor: "var(--canvas)",
-      }}
-    >
-      {/* Left Section - Student Images (Desktop Only) */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden">
-        {/* Background gradient overlay */}
-        <div
-          className="absolute inset-0  from-primary/20 via-surface/50 to-accent/20 pointer-events-none"
-          aria-hidden="true"
-        />
-
-        {/* Animated decorative elements */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.1 }}
-          transition={{ duration: 1.5 }}
-          className="absolute top-20 right-20 w-72 h-72 bg-primary rounded-full blur-3xl pointer-events-none"
-          aria-hidden="true"
-        />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.1 }}
-          transition={{ duration: 1.5, delay: 0.3 }}
-          className="absolute bottom-20 left-20 w-96 h-96 bg-accent rounded-full blur-3xl pointer-events-none"
-          aria-hidden="true"
-        />
-
-        <div className="relative z-10 max-w-xl w-full">
-          {/* Logo Section */}
-          <motion.div
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="mb-8"
-          >
-            <div className="inline-flex items-center gap-3 mb-6">
-              <div className="w-14 h-14 rounded-2xl  from-primary to-accent flex items-center justify-center shadow-lg">
-                <GraduationCap className="w-8 h-8 text-white" />
-              </div>
-              <span className="text-3xl font-bold  text-white ">
-                MIVA HUBBLE
-              </span>
-            </div>
-            {/* UPDATED: "Let's get started!" text color changed for background harmony */}
-            <h1
-              className="text-5xl font-bold mb-4 leading-tight"
-              style={{ color: "var(--accent-teal, #19e3c7)" }}
-            >
-              Let's get started!
-            </h1>
-            <p className="text-lg" style={{ color: "#94A3B8" }}>
-              Join thousands of Miva students collaborating and succeeding
-              together.
-            </p>
-          </motion.div>
-
-          {/* Student Images Grid */}
-          <div className="space-y-6">
-            {/* Main large image */}
+    <div className="min-h-screen flex flex-col bg-[#0b1120] text-slate-300 font-sans selection:bg-teal-500/30">
+      {/* Main Content Area */}
+      <div className="flex-1 w-full max-w-7xl mx-auto px-6 py-12 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-8">
+        
+        {/* Left Column: Branding, Images, and Features */}
+        <div className="flex flex-col justify-between max-w-xl">
+          <div>
+            {/* Logo */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative rounded-2xl overflow-hidden shadow-2xl"
-              whileHover={{ scale: 1.02 }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 mb-12"
             >
-              <ImageWithFallback
-                src="https://images.unsplash.com/photo-1758525862357-27fb39545240?auto=format&fit=crop&w=1080&q=80"
-                alt="Students collaborating"
-                className="w-full h-80 object-cover"
-              />
-              <div className="absolute inset-0 from-canvas/80 via-transparent to-transparent" />
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="absolute bottom-6 left-6 right-6"
-              >
-                <div
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg backdrop-blur-md"
-                  style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
-                >
-                  <Users
-                    className="w-4 h-4"
-                    style={{ color: "var(--accent-teal, #14b8a6)" }}
-                  />
-                  <span className="text-sm font-semibold">
-                    2,500+ Active Students
-                  </span>
-                </div>
-              </motion.div>
+              <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-[#38bdf8] to-[#0ea5e9] flex items-center justify-center shadow-lg shadow-sky-500/20">
+                <span className="text-white font-black text-xl tracking-tighter">H</span>
+              </div>
+              <span className="text-xl font-bold text-white tracking-tight">
+                Miva <span className="text-[#38bdf8]">Hubble</span>
+              </span>
             </motion.div>
 
-            {/* Two smaller images side by side */}
-            <div className="grid grid-cols-2 gap-4">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="relative rounded-xl overflow-hidden shadow-xl"
-                whileHover={{ scale: 1.05 }}
-              >
-                <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1704748082614-8163a88e56b8?auto=format&fit=crop&w=1080&q=80"
-                  alt="Student with laptop"
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute inset-0 from-canvas/60 to-transparent" />
-                <div className="absolute bottom-3 left-3">
-                  <div
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md backdrop-blur-sm"
-                    style={{ backgroundColor: "rgba(6, 182, 212, 0.2)" }}
-                  >
-                    <BookOpen
-                      className="w-3.5 h-3.5"
-                      style={{ color: "var(--accent-teal, #14b8a6)" }}
-                    />
-                    <span className="text-xs font-semibold">
-                      Course Library
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="relative rounded-xl overflow-hidden shadow-xl"
-                whileHover={{ scale: 1.05 }}
-              >
-                <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1663162550974-aaf76bcdeedf?auto=format&fit=crop&w=1080&q=80"
-                  alt="Group study"
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute inset-0 from-canvas/60 to-transparent" />
-                <div className="absolute bottom-3 left-3">
-                  <div
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md backdrop-blur-sm"
-                    style={{ backgroundColor: "rgba(59, 130, 246, 0.2)" }}
-                  >
-                    <MessageCircle
-                      className="w-3.5 h-3.5"
-                      style={{ color: "var(--primary-blue, #3b82f6)" }}
-                    />
-                    <span className="text-xs font-semibold">Study Groups</span>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Section - Auth Forms */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative overflow-hidden">
-        {" "}
-        <div
-          className="absolute inset-0  from-primary/20 via-surface/50 to-accent/20 pointer-events-none"
-          aria-hidden="true"
-        />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.1 }}
-          transition={{ duration: 1.5 }}
-          className="absolute top-20 left-20 w-72 h-72 bg-primary rounded-full blur-3xl pointer-events-none"
-          aria-hidden="true"
-        />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.1 }}
-          transition={{ duration: 1.5, delay: 0.3 }}
-          className="absolute bottom-20 right-20 w-96 h-96 bg-accent rounded-full blur-3xl pointer-events-none"
-          aria-hidden="true"
-        />
-        <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="w-full max-w-md relative z-10"
-        >
-          {/* Mobile Logo */}
-          <div className="lg:hidden mb-8 text-center">
-            <div className="inline-flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl from-primary to-accent flex items-center justify-center">
-                <GraduationCap className="w-7 h-7 blacktext-" />
-              </div>
-              <span className="text-3xl font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
-                MIVA HUBBLE
+            {/* Headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-white mb-6"
+            >
+              The Ultimate Space <br /> For{" "}
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-teal-300 to-emerald-400">
+                Miva Students
               </span>
-            </div>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg text-slate-400 font-medium leading-relaxed mb-12 max-w-md"
+            >
+              Connect, collaborate, and excel with fellow Hubblites. Your academic journey, amplified.
+            </motion.p>
+
+            {/* Image Grid */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className="space-y-4 mb-16"
+            >
+              {/* Top Row - Wide Image */}
+              <div className="relative rounded-2xl overflow-hidden shadow-xl h-48 w-full group">
+                <ImageWithFallback
+                  src="https://images.unsplash.com/photo-1758525862357-27fb39545240?auto=format&fit=crop&w=1080&q=80"
+                  alt="Students collaborating"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-[#0b1120]/80 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/5">
+                    <Users className="w-4 h-4 text-sky-400" />
+                    <span className="text-sm font-semibold text-white">2,500+ Active Students</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Row - Split Images */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative rounded-2xl overflow-hidden shadow-xl h-36 group">
+                  <ImageWithFallback
+                    src="https://images.unsplash.com/photo-1704748082614-8163a88e56b8?auto=format&fit=crop&w=800&q=80"
+                    alt="Course Library"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-[#0b1120]/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-3">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/5">
+                      <BookOpen className="w-4 h-4 text-emerald-400" />
+                      <span className="text-xs font-semibold text-white">Course Library</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="relative rounded-2xl overflow-hidden shadow-xl h-36 group">
+                  <ImageWithFallback
+                    src="https://images.unsplash.com/photo-1663162550974-aaf76bcdeedf?auto=format&fit=crop&w=800&q=80"
+                    alt="Study Groups"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-[#0b1120]/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-3">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/5">
+                      <MessageCircle className="w-4 h-4 text-purple-400" />
+                      <span className="text-xs font-semibold text-white">Study Groups</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
 
+          {/* Features Grid */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ delay: 0.4 }}
+            className="grid grid-cols-2 gap-y-8 gap-x-4"
           >
-            <h2 className="text-4xl font-bold mb-2 text-slate-50">
-              {isSignIn ? "Welcome back" : "Join today"}
-            </h2>
-            <p className="mb-8" style={{ color: "#94A3B8" }}>
-              {isSignIn
-                ? "Sign in to continue your academic journey"
-                : "Start collaborating with fellow Miva students"}
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email Input */}
-              <motion.div
-                whileHover={{ scale: 1.01 }}
-                transition={{ duration: 0.2 }}
-              >
-                <input
-                  type="email"
-                  placeholder="student@miva.edu.ng"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-4 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:border-primary cursor-text"
-                  style={{
-                    backgroundColor: "var(--input-fill, #0b1220)",
-                    borderColor:
-                      "var(--border-divider, rgba(148, 163, 184, 0.2))",
-                    color: "#F8FAFC",
-                  }}
-                  required
-                />
-              </motion.div>
-
-              {emailError && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="flex items-center gap-2 text-sm text-red-500"
-                >
-                  <AlertCircle className="w-4 h-4" />
-                  <span>{emailError}</span>
-                </motion.div>
-              )}
-
-              {isSignIn && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  whileHover={{ scale: 1.01 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-5 py-4 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:border-primary cursor-text"
-                    style={{
-                      backgroundColor: "var(--input-fill, #0b1220)",
-                      borderColor:
-                        "var(--border-divider, rgba(148, 163, 184, 0.2))",
-                      color: "#F8FAFC",
-                    }}
-                    required
-                  />
-                </motion.div>
-              )}
-
-              {/* Forgot Password Link - Only shown in Sign In mode */}
-              {isSignIn && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-right"
-                >
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    className="text-sm font-semibold transition-colors duration-200 cursor-pointer"
-                    style={{ color: "var(--primary-blue, #3b82f6)" }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color =
-                        "var(--hover-blue, #2563eb)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color =
-                        "var(--primary-blue, #3b82f6)";
-                    }}
-                  >
-                    Forgot password?
-                  </button>
-                </motion.div>
-              )}
-
-              {/* CTA Button */}
-              <motion.button
-                type="submit"
-                whileHover={{
-                  scale: 1.02,
-                  boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)",
-                }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-4 rounded-xl font-semibold text-white transition-all duration-200 cursor-pointer"
-                style={{ backgroundColor: "var(--primary-blue, #3b82f6)" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    "var(--hover-blue, #2563eb)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    "var(--primary-blue, #3b82f6)";
-                }}
-              >
-                {isSignIn ? "Sign in" : "Create account"}
-              </motion.button>
-
-              {/* Divider */}
-              <div className="flex items-center gap-4 my-6">
-                <div
-                  className="flex-1 h-px"
-                  style={{
-                    backgroundColor:
-                      "var(--border-divider, rgba(148, 163, 184, 0.2))",
-                  }}
-                />
-                <span style={{ color: "var(--text-muted, #94A3B8)" }}>or</span>
-                <div
-                  className="flex-1 h-px"
-                  style={{
-                    backgroundColor:
-                      "var(--border-divider, rgba(148, 163, 184, 0.2))",
-                  }}
-                />
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-sky-500/10 shrink-0">
+                <MessageCircle className="w-5 h-5 text-sky-400" />
               </div>
-
-              {/* Secondary Auth Options */}
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                className="w-full py-4 rounded-xl border-2 font-semibold transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer"
-                style={{
-                  borderColor:
-                    "var(--border-divider, rgba(148, 163, 184, 0.2))",
-                  backgroundColor: "transparent",
-                  color: "#fff",
-                }}
-                onClick={() => {
-                  // TODO: Redirect to backend Google OAuth endpoint
-                  // window.location.href = import.meta.env.VITE_OAUTH_GOOGLE_URL
-                }}
-              >
-                {/* <FcGoogle className="w-5 h-5" /> */}
-                Continue with Google
-              </motion.button>
-            </form>
-
-            {/* Toggle Sign In/Sign Up */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="mt-8 text-center"
-            >
-              <span style={{ color: "#94A3B8" }}>
-                {isSignIn
-                  ? "Don't have an account? "
-                  : "Already have an account? "}
-              </span>
-              <button
-                onClick={() => setIsSignIn(!isSignIn)}
-                className="font-semibold transition-colors duration-200 cursor-pointer"
-                style={{ color: "var(--primary-blue, #3b82f6)" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "var(--hover-blue, #2563eb)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "var(--primary-blue, #3b82f6)";
-                }}
-              >
-                {isSignIn ? "Sign up" : "Sign in"}
-              </button>
-            </motion.div>
-
-            {/* Terms & Privacy */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="mt-8 text-sm text-center"
-              style={{ color: "var(--text-muted, #94A3B8)" }}
-            >
-              By signing up, you agree to the{" "}
-              <a
-                href="#"
-                className="hover:underline"
-                style={{ color: "var(--primary-blue, #3b82f6)" }}
-              >
-                Terms of Service
-              </a>{" "}
-              and{" "}
-              <a
-                href="#"
-                className="hover:underline"
-                style={{ color: "var(--primary-blue, #3b82f6)" }}
-              >
-                Privacy Policy
-              </a>
-              , including Cookie Use.
-            </motion.p>
-
-            {/* Trust Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              className="mt-6 p-4 rounded-xl flex items-center gap-3"
-              // Updated: backgroundColor + text color for trust badge for optimal contrast
-              style={{ backgroundColor: "var(--surface, #111827)" }}
-            >
-              <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                <Zap
-                  className="w-5 h-5"
-                  style={{ color: "var(--accent-teal, #14b8a6)" }}
-                />
+              <div>
+                <h3 className="text-sm font-bold text-white mb-1">Discussions</h3>
+                <p className="text-xs text-slate-400">Share ideas instantly</p>
               </div>
-              <div className="flex-1">
-                {/* UPDATED: Trust badge heading color for more vivid contrast */}
-                <p
-                  className="text-sm font-semibold"
-                  style={{ color: "var(--accent-teal, #19e3c7)" }}
-                >
-                  Verified Students Only
-                </p>
-                <p className="text-xs" style={{ color: "#94A3B8" }}>
-                  Email verification within 60 seconds
-                </p>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-emerald-500/10 shrink-0">
+                <Users className="w-5 h-5 text-emerald-400" />
               </div>
-            </motion.div>
+              <div>
+                <h3 className="text-sm font-bold text-white mb-1">Communities</h3>
+                <p className="text-xs text-slate-400">Find your cohort</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-indigo-500/10 shrink-0">
+                <BookOpen className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white mb-1">Resources</h3>
+                <p className="text-xs text-slate-400">Access shared study materials</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-amber-500/10 shrink-0">
+                <GraduationCap className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white mb-1">Peer Support</h3>
+                <p className="text-xs text-slate-400">Learn from upperclassmen</p>
+              </div>
+            </div>
           </motion.div>
-        </motion.div>
+        </div>
+
+        {/* Right Column: Auth Card */}
+        <div className="flex items-center justify-center lg:justify-end lg:pl-12 w-full">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="w-full max-w-md bg-[#131b2f] border border-[#1e293b] rounded-4xl p-8 md:p-10 shadow-2xl relative overflow-hidden"
+          >
+            
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-sky-500/5 blur-3xl pointer-events-none" />
+
+            <div className="relative z-10">
+              <AnimatePresence mode="wait">
+                <motion.div 
+                  key={isSignIn ? "signin" : "signup"}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="mb-8"
+                >
+                  <h2 className="text-3xl font-bold tracking-tight text-white mb-2">
+                    {isSignIn ? "Welcome back" : "Join today"}
+                  </h2>
+                  <p className="text-sm text-slate-400 font-medium">
+                    {isSignIn 
+                      ? "Sign in with your university account to continue." 
+                      : "Sign up with your university account to explore."}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Action Button */}
+              <button
+                type="button"
+                onClick={handleGoogleAuth}
+                className="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-xl text-sm font-bold bg-[#e2e8f0] text-slate-900 hover:bg-white transition-all hover:scale-[1.02] active:scale-[0.98] mb-6"
+              >
+                <ImageWithFallback
+                  src="https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
+                  fallbackSrc="https://developers.google.com/static/identity/images/g-logo.png"
+                  alt="Google logo"
+                  className="w-5 h-5 object-contain"
+                />
+                {isSignIn ? "Sign in with Google" : "Sign up with Google"}
+              </button>
+
+              {/* Toggle Text */}
+              <div className="text-center text-sm font-medium mb-12">
+                <span className="text-slate-400">
+                  {isSignIn ? "Don't have an account? " : "Already have an account? "}
+                </span>
+                <button
+                  onClick={() => setIsSignIn(!isSignIn)}
+                  className="font-bold text-[#38bdf8] hover:text-sky-400 hover:underline transition-colors ml-1"
+                >
+                  {isSignIn ? "Sign up" : "Sign in"}
+                </button>
+              </div>
+
+              {/* Legal Notice */}
+              <p className="text-[13px] text-center leading-relaxed text-slate-500 mb-8">
+                By continuing, you agree to our{" "}
+                <a href="#" className="text-sky-500 hover:underline">Terms of Service</a>
+                {" "}and{" "}
+                <a href="#" className="text-sky-500 hover:underline">Privacy Policy</a>.
+              </p>
+
+              {/* Trust Badge inside Card */}
+              <div className="p-4 rounded-xl bg-white/3 border border-white/5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                  <Zap className="w-5 h-5 text-emerald-400 fill-emerald-400/20" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-0.5">
+                    Verified Students Only
+                  </p>
+                  <p className="text-[13px] font-medium text-slate-400">
+                    Seamless Miva account integration
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
+
+      {/* Global Footer */}
+      <footer className="w-full border-t border-white/5 mt-auto">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-500">
+          <p>© 2024 Miva Hubble. Verified Students Only.</p>
+          <div className="flex flex-wrap justify-center items-center gap-6">
+            <a href="#" className="hover:text-slate-300 transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-slate-300 transition-colors">University Integration</a>
+            <a href="#" className="hover:text-slate-300 transition-colors">Help Center</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
