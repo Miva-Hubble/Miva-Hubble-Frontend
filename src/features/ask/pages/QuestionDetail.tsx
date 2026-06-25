@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useOutletContext } from "react-router-dom";
 import {
   ArrowLeft,
   MessageCircle,
@@ -8,14 +8,13 @@ import {
   TrendingUp,
 } from "lucide-react";
 import AnswerCard from "../components/AnswerCard";
-import AskNavbar from "../../../components/ui/MainNavbar";
 import { getAskTheme } from "../constants/theme";
 import { useQuestionsStore } from "../store/questionsStore";
 
 export default function QuestionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const { isDarkMode } = useOutletContext<{ isDarkMode: boolean }>();
   const [answerText, setAnswerText] = useState("");
 
   const theme = getAskTheme(isDarkMode);
@@ -59,12 +58,6 @@ export default function QuestionDetail() {
         color: theme.textPrimary,
       }}
     >
-      <AskNavbar
-        NavTheme={theme}
-        isDarkMode={isDarkMode}
-        onToggleTheme={() => setIsDarkMode(!isDarkMode)}
-      />
-
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
         {/* Back */}
         <motion.button

@@ -1,11 +1,9 @@
 import { motion } from "motion/react";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import MOCK_RESOURCES from "../constants/mock_resources";
 import UploadResourceModal from "../components/UploadResourceModal";
 import { getVaultTheme } from "../constants/theme";
-import { getAskTheme } from "../../ask/constants/theme";
-import MainNavbar from "../../../components/ui/MainNavbar";
 import { 
   Library,
   Home,
@@ -33,7 +31,7 @@ import { ImageWithFallback } from "../components/ImageWithFallback";
 
 export default function Vault() {
   const navigate = useNavigate();
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const { isDarkMode } = useOutletContext<{ isDarkMode: boolean }>();
   const [activeNav, setActiveNav] = useState("vault");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("All Levels");
@@ -66,12 +64,6 @@ export default function Vault() {
         color: theme.textPrimary,
       }}
     >
-      {/* Navbar */}
-      <MainNavbar 
-        NavTheme={getAskTheme(isDarkMode)}
-        isDarkMode={isDarkMode}
-        onToggleTheme={() => setIsDarkMode(!isDarkMode)}
-      />
     <div className="flex w-full max-w-7xl mx-auto">
       {/* Sidebar */}
       <motion.aside

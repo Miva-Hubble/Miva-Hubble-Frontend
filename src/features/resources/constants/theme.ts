@@ -17,7 +17,7 @@ export type VaultTheme = {
 export function getVaultTheme(isDarkMode: boolean): VaultTheme {
   return isDarkMode
     ? {
-        bg: "#0F172A",
+        bg: "#0B1120",
         surface: "#1E293B",
         cardBg: "#1E293B",
         accentBg: "#334155",
@@ -32,7 +32,7 @@ export function getVaultTheme(isDarkMode: boolean): VaultTheme {
         accentLight: "#FCD34D",
       }
     : {
-        bg: "#FEF3E2",
+        bg: "#F1F5F9",
         surface: "#FFFFFF",
         cardBg: "#FFFFFF",
         accentBg: "#FAF5E7",

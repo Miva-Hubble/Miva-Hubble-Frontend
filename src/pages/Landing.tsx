@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, type ImgHTMLAttributes } from "react";
-import { useNavigate } from "react-router-dom";
+import { authService } from "../services/authService";
 import {
   Users,
   MessageCircle,
@@ -28,17 +28,17 @@ function ImageWithFallback({
 }
 
 export default function LandingPage() {
-  const navigate = useNavigate();
   const [isSignIn, setIsSignIn] = useState(false);
 
   const handleGoogleAuth = () => {
+    // Redirect user to backend Google routes
     if (isSignIn) {
-      console.log("Triggering Google OAuth Flow for Sign In");
-      navigate("/dashboard");
-    } else {
-      console.log("Triggering Google OAuth Flow for Sign Up");
-      navigate("/profile-setup");
-    }
+      console.log("Redirecting to Google Sign In...");
+      authService.initiateAuth(); // Calling the redirect
+      } else {
+      console.log("Redirecting to Google  Sign Up...");
+      authService.initiateAuth(); 
+          }
   };
 
   return (

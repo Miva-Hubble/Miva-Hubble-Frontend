@@ -1,19 +1,17 @@
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-// import AskNavbar from "../../../components/ui/MainNavbar";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import AskQuestionModal from "../components/AskQuestionModal";
 import FilterTabs from "../components/FilterTabs";
 import QuestionCard from "../components/QuestionCard";
 import { getAskTheme } from "../constants/theme";
 import { useQuestionsStore } from "../store/questionsStore";
 import type { QuestionFilter } from "../types/question";
-import MainNavbar from "../../../components/ui/MainNavbar";
 
 export default function Ask() {
   const navigate = useNavigate();
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const { isDarkMode } = useOutletContext<{ isDarkMode: boolean }>();  
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<QuestionFilter>("trending");
   const [showModal, setShowModal] = useState(false);
@@ -58,12 +56,6 @@ export default function Ask() {
         color: theme.textPrimary,
       }}
     >
-      <MainNavbar
-        NavTheme={getAskTheme(isDarkMode)}
-        isDarkMode={isDarkMode}
-        onToggleTheme={() => setIsDarkMode(!isDarkMode)}
-      />
-
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Hero */}
         <motion.div
