@@ -17,7 +17,7 @@ import QuestionDetailPage from "../features/ask/pages/QuestionDetail";
 
 // Auth Components
 import ProtectedRoute from "./ProtectedRoute";
-import GuestRoute from "./GuestRoute";
+// import GuestRoute from "./GuestRoute";
 
 export const AppRoutes = () => {
   return (
@@ -26,9 +26,9 @@ export const AppRoutes = () => {
       <Route path="/auth-callback" element={<AuthCallback />} />
 
       {/* GUEST ROUTES */}
-      <Route element={<GuestRoute />}>
+      {/* <Route element={<GuestRoute />}> */}
         <Route path="/" element={<LandingPage />} />
-      </Route>
+      {/* </Route> */}
       
       {/* PROTECTED ROUTES */}
       <Route element={<ProtectedRoute />}>
