@@ -20,7 +20,7 @@ export default function AuthCallback() {
       if (isNewUser === "true") {
         navigate("/profile-setup"); 
       } else {
-        navigate("/dashboard"); 
+        navigate("/feed"); 
       }
     } else {
       // Fallback: No token? route user back to landing
