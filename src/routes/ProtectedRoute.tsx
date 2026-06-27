@@ -1,14 +1,13 @@
 import { Navigate, Outlet } from "react-router-dom";
-// Assuming you have a store or hook for auth
 import { useAuth } from "../hooks/useAuth"; 
 
 const ProtectedRoute = () => {
   const { user, isLoading } = useAuth();
 
-  if (isLoading) return <div>Loading...</div>; // Or a spinner component
+  if (isLoading) return <div className="min-h-screen bg-[#0b1120]" />; 
   
-  // If no user, send them to login
-  return user ? <Outlet /> : <Navigate to="/login" replace />;
+  // If no user, kick them back to the front door
+  return user ? <Outlet /> : <Navigate to="/" replace />;
 };
 
 export default ProtectedRoute;

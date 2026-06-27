@@ -6,7 +6,7 @@ function App() {
   return (
     <BrowserRouter>
       {/* <ThemeProvider> */}
-        <AppRoutes />
+      <AppRoutes />
       {/* </ThemeProvider> */}
     </BrowserRouter>
   );

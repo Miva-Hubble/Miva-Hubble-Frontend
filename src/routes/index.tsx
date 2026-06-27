@@ -1,44 +1,47 @@
-import { Routes, Route } from "react-router-dom";
+﻿import { Routes, Route } from "react-router-dom";
 
 // Layouts
 import AppLayout from "../components/Layout/AppLayout";
-import AuthLayout from "../components/Layout/AuthLayout";
 
-// Pages
+// Pre-Auth Pages
 import LandingPage from "../pages/Landing";
 import NotFoundPage from "../pages/NotFound";
+import AuthCallback from "../components/ui/AuthCallback";
 
 // Feature Pages
-import LoginPage from "../features/auth/pages/Login";
-import SignupPage from "../features/auth/pages/Signup";
-import DashboardPage from "../features/dashboard/pages/Dashboard";
+import ProfileSetupPage from "../features/auth/pages/ProfileSetup";
 import FeedPage from "../features/feed/pages/Feed";
 import ResourcesPage from "../features/resources/pages/Vault";
+import AskPage from "../features/ask/pages/Ask";
+import QuestionDetailPage from "../features/ask/pages/QuestionDetail";
 
+// Auth Components
 import ProtectedRoute from "./ProtectedRoute";
+// import GuestRoute from "./GuestRoute";
 
 export const AppRoutes = () => {
   return (
     <Routes>
-      {/* PUBLIC ROUTES */}
-      <Route path="/" element={<LandingPage />} />
+      {/* UNWRAPPED ROUTE */}
+      <Route path="/auth-callback" element={<AuthCallback />} />
 
-      {/* AUTH ROUTES */}
-      <Route element={<AuthLayout />}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-      </Route>
-
-      {/* PRIVATE ROUTES */}
+      {/* GUEST ROUTES */}
+      {/* <Route element={<GuestRoute />}> */}
+        <Route path="/" element={<LandingPage />} />
+      {/* </Route> */}
+      
+      {/* PROTECTED ROUTES */}
       <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/resources" element={<ResourcesPage />} />
-          {/* Add more app features here */}
-        </Route>
-      </Route>
+        <Route path="/profile-setup" element={<ProfileSetupPage />} />
 
+        <Route element={<AppLayout />}>
+          <Route path="/feed" element={<FeedPage />} />          {/* Add more app features here */}
+          <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/ask" element={<AskPage />} />
+          <Route path="/ask/:id" element={<QuestionDetailPage />} />
+        </Route>
+        
+      </Route>
       {/* CATCH ALL */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
