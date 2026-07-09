@@ -1,6 +1,13 @@
 export interface ProfileSetupData {
-  displayName: string;
   department: string;
   currentLevel: string;
-  defaultMode: "anonymous" | "identified";
+  goals: string[];
+  profilePhoto: File | null;
+}
+
+export interface ProfileSetupPayload {
+  department: string;
+  currentLevel: string;
+  goals: string[];
+  profilePhoto: File | null;
 }

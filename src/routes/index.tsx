@@ -30,9 +30,9 @@ export const AppRoutes = () => {
         <Route path="/" element={<LandingPage />} />
       {/* </Route> */}
       
+        <Route path="/profile-setup" element={<ProfileSetupPage />} />
       {/* PROTECTED ROUTES */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/profile-setup" element={<ProfileSetupPage />} />
 
         <Route element={<AppLayout />}>
           <Route path="/feed" element={<FeedPage />} />          {/* Add more app features here */}

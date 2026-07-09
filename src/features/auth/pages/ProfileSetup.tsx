@@ -1,82 +1,111 @@
 import { useState } from "react";
-import { Navbar } from "../components/NavBar";
-import Step1Profile from "../components/Step1Profile";
-import Step2Mode from "../components/Step2Mode";
-import ProgressBar from "../../../components/ui/ProgressBar";
 import { useNavigate } from "react-router-dom";
+import { getAskTheme } from "../../ask/constants/theme";
+import SetupHeader from "../components/SetupHeader";
+import Step1LevelDepartment from "../components/Step1LevelDepartment";
+import Step2Goals from "../components/Step2Goals";
+import Step3ProfilePhoto from "../components/Step3ProfilePhoto";
+import { MAX_GOALS } from "../../../constants/profile";
+import { profileService } from "../../../services/profileService";
 import type { ProfileSetupData } from "../../../types/ProfileSetup";
+
+const TOTAL_STEPS = 3;
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
+  const theme = getAskTheme(true);
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<ProfileSetupData>({
-    displayName: "",
     department: "",
-    currentLevel: "100",
-    defaultMode: "anonymous",
+    currentLevel: "",
+    goals: [],
+    profilePhoto: null,
   });
 
-  const handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, displayName: e.target.value });
-  };
-
-  const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData({ ...formData, department: e.target.value });
-  };
-
-  const handleLevelChange = (level: string) => {
-    setFormData({ ...formData, currentLevel: level });
-  };
-
-  const handleModeChange = (mode: "anonymous" | "identified") => {
-    setFormData({ ...formData, defaultMode: mode });
-  };
-
-  const handleContinue = () => {
+  const handleBack = () => {
     if (currentStep === 1) {
-      if (!formData.displayName || !formData.department) {
-        alert("Please fill in all fields");
-        return;
-      }
-      setCurrentStep(2);
-    } else if (currentStep === 2) {
-      handleCompleteSetup();
+      navigate("/");
+    } else {
+      setCurrentStep((step) => step - 1);
     }
   };
 
-  const handleCompleteSetup = () => {
-    console.log("Profile setup completed:", formData);
-    // TODO: Call API to save profile data
-    navigate("/dashboard");
+  const handleToggleGoal = (goal: string) => {
+    setFormData((prev) => {
+      const isSelected = prev.goals.includes(goal);
+
+      if (isSelected) {
+        return { ...prev, goals: prev.goals.filter((g) => g !== goal) };
+      }
+
+      if (prev.goals.length >= MAX_GOALS) return prev;
+
+      return { ...prev, goals: [...prev.goals, goal] };
+    });
+  };
+
+  const handleComplete = async (skipPhoto = false) => {
+    setIsSaving(true);
+    await profileService.saveProfile({
+      department: formData.department,
+      currentLevel: formData.currentLevel,
+      goals: formData.goals,
+      profilePhoto: skipPhoto ? null : formData.profilePhoto,
+    });
+    navigate("/feed");
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div
+      className="min-h-screen font-sans"
+      style={{ backgroundColor: theme.bg, color: theme.textPrimary }}
+    >
+      <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col px-5 pb-8 pt-6">
+        <SetupHeader
+          theme={theme}
+          currentStep={currentStep}
+          totalSteps={TOTAL_STEPS}
+          onBack={handleBack}
+        />
 
-      <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-6">
-        <div className="w-full max-w-full md:max-w-[50%] lg:max-w-[50%]">
-          <div className="my-6 pt-6 md:my-8 md:pt-8">
-            <ProgressBar currentStep={currentStep} totalSteps={2} />
-          </div>
+        <div className="mt-8 flex flex-1 flex-col">
+          {currentStep === 1 && (
+            <Step1LevelDepartment
+              theme={theme}
+              currentLevel={formData.currentLevel}
+              department={formData.department}
+              onLevelChange={(level) =>
+                setFormData((prev) => ({ ...prev, currentLevel: level }))
+              }
+              onDepartmentChange={(department) =>
+                setFormData((prev) => ({ ...prev, department }))
+              }
+              onContinue={() => setCurrentStep(2)}
+            />
+          )}
 
-          <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
-            {currentStep === 1 ? (
-              <Step1Profile
-                formData={formData}
-                onDisplayNameChange={handleDisplayNameChange}
-                onDepartmentChange={handleDepartmentChange}
-                onLevelChange={handleLevelChange}
-                onContinue={handleContinue}
-              />
-            ) : (
-              <Step2Mode
-                formData={formData}
-                onModeChange={handleModeChange}
-                onComplete={handleContinue}
-              />
-            )}
-          </div>
+          {currentStep === 2 && (
+            <Step2Goals
+              theme={theme}
+              selectedGoals={formData.goals}
+              onToggleGoal={handleToggleGoal}
+              onContinue={() => setCurrentStep(3)}
+            />
+          )}
+
+          {currentStep === 3 && (
+            <Step3ProfilePhoto
+              theme={theme}
+              profilePhoto={formData.profilePhoto}
+              onPhotoChange={(file) =>
+                setFormData((prev) => ({ ...prev, profilePhoto: file }))
+              }
+              onFinish={() => handleComplete(false)}
+              onSkip={() => handleComplete(true)}
+              isSaving={isSaving}
+            />
+          )}
         </div>
       </div>
     </div>
