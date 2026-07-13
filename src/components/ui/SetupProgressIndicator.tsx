@@ -16,6 +16,7 @@ const SetupProgressIndicator = ({
       {Array.from({ length: totalSteps }, (_, index) => {
         const step = index + 1;
         const isActive = step === currentStep;
+        const isCompleted = step < currentStep;
 
         return (
           <div
@@ -24,7 +25,7 @@ const SetupProgressIndicator = ({
             style={{
               height: "6px",
               width: isActive ? "32px" : "6px",
-              backgroundColor: isActive ? theme.primary : theme.border,
+              backgroundColor: (isActive || isCompleted) ? theme.primary : theme.border,
             }}
           />
         );

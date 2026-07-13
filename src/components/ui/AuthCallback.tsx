@@ -1,30 +1,28 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { authService } from "../../services/authService";
 import { Loader2 } from "lucide-react";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  console.log("Callback mounted!");
+
   useEffect(() => {
-    // Grab the token from the URL 
-    const token = searchParams.get("token");
+    // Grab user status from the URL
+    const success = searchParams.get("success");
     const isNewUser = searchParams.get("isNewUser");
 
-    if (token) {
-      // Save token to localStorage 
-      authService.saveAuthData(token);
-
-      // 3. Route user based on their status
+    if (success === "true") {
+      // Route the user based on their status
       if (isNewUser === "true") {
         navigate("/profile-setup"); 
       } else {
         navigate("/feed"); 
       }
     } else {
-      // Fallback: No token? route user back to landing
-      console.error("Auth failed: No token found in URL");
+      // Fallback: If success isn't true:
+      console.error("Auth failed: None or invalid cookies received");
       navigate("/"); 
     }
   }, [navigate, searchParams]);

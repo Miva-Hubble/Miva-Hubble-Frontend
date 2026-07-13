@@ -3,9 +3,8 @@ import type { ProfileSetupPayload } from "../types/ProfileSetup";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-// TODO: Update with correct API routes when backend is ready
-const DEPARTMENTS_URL = `${BASE_URL}/api/departments`;
-const PROFILE_SETUP_URL = `${BASE_URL}/api/profile/setup`;
+const DEPARTMENTS_URL = `${BASE_URL}/api/onboarding`;
+const PROFILE_SETUP_URL = `${BASE_URL}/api/onboarding`;
 
 const FALLBACK_DEPARTMENTS = [
   "Computer Science",
@@ -22,17 +21,10 @@ const FALLBACK_DEPARTMENTS = [
   "Mass Communication",
 ];
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("userToken");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
 export const profileService = {
   fetchDepartments: async (): Promise<string[]> => {
     try {
-      const response = await axios.get(DEPARTMENTS_URL, {
-        headers: getAuthHeaders(),
-      });
+      const response = await axios.get(DEPARTMENTS_URL);
       const data = response.data;
 
       if (Array.isArray(data)) return data;
@@ -52,7 +44,7 @@ export const profileService = {
     try {
       const formData = new FormData();
       formData.append("department", payload.department);
-      formData.append("currentLevel", payload.currentLevel);
+      formData.append("currentLevel", payload.level);
       formData.append("goals", JSON.stringify(payload.goals));
 
       if (payload.profilePhoto) {
@@ -61,7 +53,6 @@ export const profileService = {
 
       await axios.post(PROFILE_SETUP_URL, formData, {
         headers: {
-          ...getAuthHeaders(),
           "Content-Type": "multipart/form-data",
         },
       });

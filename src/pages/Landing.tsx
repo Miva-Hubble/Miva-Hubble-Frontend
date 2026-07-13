@@ -228,7 +228,7 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={handleGoogleAuth}
-                className="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-xl text-sm font-bold bg-[#e2e8f0] text-slate-900 hover:bg-white transition-all hover:scale-[1.02] active:scale-[0.98] mb-6"
+                className="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-xl text-sm font-bold bg-[#e2e8f0] text-slate-900 hover:bg-white transition-all hover:scale-[1.02] active:scale-[0.98] mb-6 cursor-pointer"
               >
                 <ImageWithFallback
                   src="https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
