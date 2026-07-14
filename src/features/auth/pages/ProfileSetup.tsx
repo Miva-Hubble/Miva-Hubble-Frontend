@@ -18,7 +18,7 @@ const ProfileSetup = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<ProfileSetupData>({
     department: "",
-    level: "",
+    currentLevel: "",
     goals: [],
     profilePhoto: null,
   });
@@ -49,7 +49,7 @@ const ProfileSetup = () => {
     setIsSaving(true);
     await profileService.saveProfile({
       department: formData.department,
-      level: formData.level,
+      currentLevel: formData.currentLevel,
       goals: formData.goals,
       profilePhoto: skipPhoto ? null : formData.profilePhoto,
     });
@@ -73,7 +73,7 @@ const ProfileSetup = () => {
           {currentStep === 1 && (
             <Step1LevelDepartment
               theme={theme}
-              currentLevel={formData.level}
+              currentLevel={formData.currentLevel}
               department={formData.department}
               onLevelChange={(level) =>
                 setFormData((prev) => ({ ...prev, currentLevel: level }))

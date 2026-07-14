@@ -58,9 +58,8 @@ const Step1LevelDepartment = ({
     dept.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleLevelSelect = (level: string) => {
-    onLevelChange(level);
-    setTimeout(() => departmentInputRef.current?.focus(), 150);
+  const handleLevelSelect = (level: string | number) => {
+   onLevelChange(String(level)); 
   };
 
   const handleDepartmentSelect = (dept: string) => {
@@ -90,7 +89,7 @@ const Step1LevelDepartment = ({
           className="mb-8 text-sm leading-relaxed"
           style={{ color: theme.textSecondary }}
         >
-          We&apos;ll show resources, discussions, and students relevant to your
+          We'll show resources, discussions, and students relevant to your
           level and department.
         </p>
 
@@ -102,15 +101,15 @@ const Step1LevelDepartment = ({
             YOUR LEVEL
           </p>
           <div className="grid grid-cols-2 gap-3">
-            {levels.map((level) => {
-              const isSelected = currentLevel === level;
+          {levels.map((level) => {
+              const isSelected = String(currentLevel) === String(level);
 
               return (
                 <button
                   key={level}
                   type="button"
                   onClick={() => handleLevelSelect(level)}
-                  className="relative rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200"
+                  className="relative rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200 cursor-pointer"
                   style={
                     isSelected
                       ? {
