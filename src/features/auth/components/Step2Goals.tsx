@@ -62,7 +62,7 @@ const Step2Goals = ({
                 type="button"
                 onClick={() => onToggleGoal(goal)}
                 disabled={isDisabled}
-                className="relative rounded-full px-4 py-3 text-left text-xs font-medium transition-all duration-200 sm:text-sm"
+                className="relative rounded-full px-4 py-3 text-left text-xs font-medium transition-all duration-200 sm:text-sm cursor-pointer"
                 style={
                   isSelected
                     ? {

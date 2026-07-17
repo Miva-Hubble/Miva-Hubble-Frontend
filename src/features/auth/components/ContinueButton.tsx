@@ -20,7 +20,7 @@ const ContinueButton = ({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`w-full rounded-xl py-3.5 text-sm font-semibold transition-all duration-300 active:scale-[0.99] ${className}`}
+      className={`w-full rounded-xl py-3.5 text-sm font-semibold transition-all duration-300 cursor-pointer active:scale-[0.99] ${className}`}
       style={
         disabled
           ? {
