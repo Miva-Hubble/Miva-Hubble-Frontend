@@ -7,9 +7,10 @@
 //   ACCEPTED_PHOTO_TYPES,
 //   MAX_PHOTO_SIZE_BYTES,
 // } from "../../../constants/profile";
-import { Camera, Upload, AlertCircle } from "lucide-react";
+import { Camera, AlertCircle, Loader2 } from "lucide-react";
 import type { AskTheme } from "../../ask/constants/theme";
 import ContinueButton from "./ContinueButton";
+import ErrorBanner from "../../../components/feedback/ErrorBanner";
 
 
 interface Step3ProfilePhotoProps {
@@ -19,6 +20,10 @@ interface Step3ProfilePhotoProps {
   onFinish: () => void;
   onSkip: () => void;
   isSaving?: boolean;
+  /** User-friendly message from getUserFriendlyError, or null when there's no error. */
+  errorMessage?: string | null;
+  /** Re-runs the save. Omit to render the error without a retry action. */
+  onRetry?: () => void;
 }
 
 const Step3ProfilePhoto = ({
@@ -28,6 +33,8 @@ const Step3ProfilePhoto = ({
   onFinish,
   onSkip,
   isSaving = false,
+  errorMessage = null,
+  onRetry,
 }: Step3ProfilePhotoProps) => {
   // const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   // const [error, setError] = useState<string | null>(null);
@@ -114,27 +121,20 @@ const Step3ProfilePhoto = ({
               Tap to upload             
             </span>
           </button>
-
-          <div
-            className="flex w-full flex-col items-center rounded-xl border-2 border-dashed px-6 py-8 transition-colors"
-            style={{ borderColor: theme.border }}
-          >
-            <Upload className="mb-3 h-6 w-6" style={{ color: theme.textMuted }} />
-            <p
-              className="text-sm font-medium"
-              style={{ color: theme.answerText }}
-            >
-              Drag & drop or click to browse
-            </p>
-            <p className="mt-1 text-xs" style={{ color: theme.textMuted }}>
-              JPG, PNG or WEBP · Max 5MB
-            </p>
-          </div>
         </div>
 
       </div>
 
       <div className="mt-8 space-y-3">
+        {/* Recoverable error, shown right next to the action that triggered it */}
+        {errorMessage && (
+          <ErrorBanner
+            title="We couldn't save your profile"
+            message={errorMessage}
+            onRetry={onRetry}
+          />
+        )}
+
         {/* Hard-disabled Continue Button */}
         <ContinueButton
           theme={theme}
@@ -149,10 +149,12 @@ const Step3ProfilePhoto = ({
           type="button"
           onClick={onSkip}
           disabled={isSaving}
-          className="w-full py-3.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 cursor-pointer shadow-lg active:scale-[0.99]"
+          aria-busy={isSaving}
+          className="w-full py-3.5 rounded-xl text-sm font-bold transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-lg active:scale-[0.99] flex items-center justify-center gap-2"
           style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
         >
-          {isSaving ? "Completing Setup..." : "Skip and Complete"}
+          {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isSaving ? "Completing setup..." : "Skip and Complete"}
         </button>
       </div>
     </div>

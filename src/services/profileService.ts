@@ -1,12 +1,28 @@
-import axios from "axios";
+/**
+ * profileService.ts
+ *
+ * Responsible for profile business operations only:
+ *   - Fetching the list of available departments for the onboarding step
+ *   - Saving the completed onboarding profile to the backend
+ *
+ * HTTP transport, cookie handling, and error recovery are entirely delegated
+ * to `apiClient`. This service has no knowledge of tokens, cookies, or retry
+ * logic.
+ */
+
+import { apiClient } from "../lib/axios/apiClient";
 import type { ProfileSetupPayload } from "../types/ProfileSetup";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
 
-const DEPARTMENTS_URL = `${BASE_URL}/api/onboarding`;
-const PROFILE_SETUP_URL = `${BASE_URL}/api/onboarding`;
-
-const FALLBACK_DEPARTMENTS = [
+/**
+ * Used when the departments endpoint is unavailable (e.g. backend is cold-
+ * starting on Render's free tier). Keeps the onboarding flow functional even
+ * without a live connection.
+ */
+const FALLBACK_DEPARTMENTS: readonly string[] = [
   "Computer Science",
   "Cybersecurity",
   "Data Science",
@@ -19,46 +35,91 @@ const FALLBACK_DEPARTMENTS = [
   "Business Administration",
   "Economics",
   "Mass Communication",
-];
+] as const;
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/**
+ * The shape the backend expects for the onboarding POST body.
+ * Named fields match the API contract — keep in sync with the backend schema.
+ */
+interface OnboardingPayload {
+  department: string;
+  currentLevel: string;
+  goals: string[];
+}
+
+interface DepartmentsResponse {
+  departments?: string[];
+  data?: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Normalises an arbitrary API response shape into a flat `string[]`.
+ * The backend may return the list at the top level, under `departments`, or
+ * under `data` — all three shapes are handled here.
+ */
+const normalizeDepartments = (
+  data: string[] | DepartmentsResponse,
+): string[] => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.departments)) return data.departments;
+  if (Array.isArray(data.data)) return data.data;
+  return [...FALLBACK_DEPARTMENTS];
+};
+
+// ---------------------------------------------------------------------------
+// Service
+// ---------------------------------------------------------------------------
 
 export const profileService = {
+  /**
+   * Fetches the list of departments from the onboarding endpoint.
+   *
+   * Falls back to `FALLBACK_DEPARTMENTS` if the network request fails so that
+   * onboarding remains usable while the backend is unreachable (e.g. cold
+   * start on a free hosting tier). A console warning is emitted so developers
+   * are aware the fallback path was taken.
+   */
   fetchDepartments: async (): Promise<string[]> => {
     try {
-      const response = await axios.get(DEPARTMENTS_URL);
-      const data = response.data;
-
-      if (Array.isArray(data)) return data;
-      if (Array.isArray(data?.departments)) return data.departments;
-      if (Array.isArray(data?.data)) return data.data;
-
-      return FALLBACK_DEPARTMENTS;
+      const { data } = await apiClient.get<string[] | DepartmentsResponse>(
+        "/api/onboarding",
+      );
+      return normalizeDepartments(data);
     } catch {
       console.warn(
-        "Department API unavailable — using fallback list. Update DEPARTMENTS_URL in profileService.ts.",
+        "[profileService] fetchDepartments: API unavailable — using fallback department list.",
       );
-      return FALLBACK_DEPARTMENTS;
+      return [...FALLBACK_DEPARTMENTS];
     }
   },
 
+  /**
+   * Persists the user's completed onboarding profile to the backend.
+   *
+   * The payload is sent as JSON. If the backend requires `multipart/form-data`
+   * for the profile photo, extend this method to build a `FormData` object and
+   * update the `Content-Type` header accordingly.
+   *
+   * Errors are propagated to the caller so the UI can handle the failure state
+   * (e.g. display a toast and keep the user on the current step).
+   */
   saveProfile: async (payload: ProfileSetupPayload): Promise<void> => {
-    try {
-      const formData = new FormData();
-      formData.append("department", payload.department);
-      formData.append("currentLevel", payload.level);
-      formData.append("goals", JSON.stringify(payload.goals));
+    // `payload.level` is the client-side field name (defined in ProfileSetupPayload).
+    // The backend schema expects the key `currentLevel` — the mapping happens here.
+    const body: OnboardingPayload = {
+      department: payload.department,
+      currentLevel: payload.level,
+      goals: payload.goals,
+    };
 
-      if (payload.profilePhoto) {
-        formData.append("profilePhoto", payload.profilePhoto);
-      }
-
-      await axios.post(PROFILE_SETUP_URL, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-    } catch (error) {
-      console.error("Failed to save profile setup:", error);
-      // Placeholder — don't block navigation until API is wired up
-    }
+    await apiClient.post("/api/onboarding", body);
   },
 };
