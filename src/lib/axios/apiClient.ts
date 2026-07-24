@@ -9,16 +9,27 @@
  *   - Refreshing the access token via the isolated `authClient`
  *   - Retrying the original failed request after a successful refresh
  *   - Queuing concurrent requests that arrive during an in-flight refresh
- *   - Logging the user out (redirecting to "/") when the refresh itself fails
+ *   - Announcing session expiry (via a DOM event) when refresh itself fails
  *
  * Individual services must NOT handle any of the above. They focus purely on
  * business-level operations (what to call, what to send, what to return).
+ *
+ * IMPORTANT — no unilateral navigation:
+ * This module never calls `window.location.href` itself. A shared HTTP
+ * client redirecting the whole page on any 401, from any screen, races
+ * against — and silently destroys — component-level error handling (e.g. a
+ * multi-step form that wants to show "session expired, try again" inline
+ * instead of being yanked back to "/"). Instead, on unrecoverable session
+ * expiry this module dispatches a `SESSION_EXPIRED_EVENT` on `window` and
+ * rejects the promise as normal. Callers decide what to do:
+ *   - A component with its own error UI (e.g. ProfileSetup) can just handle
+ *     the rejected promise and ignore the event entirely.
+ *   - A top-level auth listener (e.g. in your app shell / router) can listen
+ *     for the event and redirect *only* on routes that have no inline
+ *     handling of their own.
  */
 
-import axios, {
-  type AxiosError,
-  type InternalAxiosRequestConfig,
-} from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { authClient, REFRESH_ENDPOINT } from "./authClient";
 
 // ---------------------------------------------------------------------------
@@ -29,9 +40,30 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 if (!BASE_URL) {
   throw new Error(
     "[apiClient] VITE_API_URL is not defined. " +
-    "Add it to your .env file: VITE_API_URL=https://your-backend-com"
+      "Add it to your .env file: VITE_API_URL=https://your-backend-com",
   );
 }
+
+// ---------------------------------------------------------------------------
+// Session-expiry event
+//
+// Dispatched on `window` whenever a token refresh fails with a genuine
+// "session is gone" response (401/403). Nothing in this module decides what
+// the UI should do about that — it just announces the fact. Listen for it
+// wherever you want app-wide behavior:
+//
+//   window.addEventListener(SESSION_EXPIRED_EVENT, () => {
+//     if (!isOnScreenWithOwnErrorHandling()) {
+//       window.location.href = "/";
+//     }
+//   });
+// ---------------------------------------------------------------------------
+
+export const SESSION_EXPIRED_EVENT = "auth:session-expired";
+
+const announceSessionExpired = (): void => {
+  window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
+};
 
 // ---------------------------------------------------------------------------
 // Axios instance
@@ -126,7 +158,7 @@ apiClient.interceptors.response.use(
     //
     // 2. If `_retry` is already set, this request has already been replayed
     //    once after a refresh. Retrying again would risk an infinite loop.
-    //    Propagate the error so the logout path can fire.
+    //    Propagate the error so the caller's own error handling can fire.
 
     if (
       !error.response ||
@@ -168,19 +200,24 @@ apiClient.interceptors.response.use(
       return apiClient(originalRequest);
     } catch (refreshError) {
       // Refresh failed (invalid/expired refresh token) — reject all queued
-      // requests and force the user back to the login page.
+      // requests so each caller's own error handling (inline UI, toast,
+      // form state, etc.) can take over.
       processQueue(refreshError as AxiosError);
 
-      // Only redirect to login if the session is genuinely expired (401 or 403)
-      // to avoid logging out users on transient network errors.
+      // Only announce "session expired" for genuine auth failures (401/403),
+      // not transient network errors — a dropped connection shouldn't be
+      // treated the same as an invalid/expired refresh token.
       const isSessionExpired =
         axios.isAxiosError(refreshError) &&
         (refreshError.response?.status === 401 ||
           refreshError.response?.status === 403);
 
       if (isSessionExpired) {
-        // Hard redirect clears in-memory state and forces a clean re-auth.
-        window.location.href = "/";
+        // No navigation here. Dispatch the event and let the app decide —
+        // a component mid-flow (e.g. a multi-step onboarding form) may want
+        // to show its own "session expired, try again" state instead of
+        // being hard-redirected out from under the user.
+        announceSessionExpired();
       }
 
       return Promise.reject(refreshError);

@@ -47,7 +47,7 @@ const FALLBACK_DEPARTMENTS: readonly string[] = [
  */
 interface OnboardingPayload {
   department: string;
-  currentLevel: string;
+  level: string;
   goals: string[];
 }
 
@@ -112,11 +112,9 @@ export const profileService = {
    * (e.g. display a toast and keep the user on the current step).
    */
   saveProfile: async (payload: ProfileSetupPayload): Promise<void> => {
-    // `payload.level` is the client-side field name (defined in ProfileSetupPayload).
-    // The backend schema expects the key `currentLevel` — the mapping happens here.
     const body: OnboardingPayload = {
       department: payload.department,
-      currentLevel: payload.level,
+      level: payload.level,
       goals: payload.goals,
     };
 
