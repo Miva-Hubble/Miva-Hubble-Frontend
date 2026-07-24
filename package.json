@@ -14,6 +14,7 @@
     "@tanstack/react-query": "^5.90.16",
     "axios": "^1.18.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
     "g": "^2.0.1",
     "lucide-react": "^0.562.0",
     "motion": "^12.23.12",
@@ -21,7 +22,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.70.0",
-    "react-router-dom": "^7.13.0",
+    "react-router-dom": "^7.18.1",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.3.5",
     "zustand": "^5.0.9"

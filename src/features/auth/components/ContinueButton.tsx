@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import type { AskTheme } from "../../ask/constants/theme";
 
 interface ContinueButtonProps {
@@ -16,11 +17,11 @@ const ContinueButton = ({
   className = "",
 }: ContinueButtonProps) => {
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`w-full rounded-xl py-3.5 text-sm font-semibold transition-all duration-300 cursor-pointer active:scale-[0.99] ${className}`}
+      className={`w-full rounded-xl py-3.5 text-sm font-semibold cursor-pointer ${className}`}
       style={
         disabled
           ? {
@@ -33,19 +34,15 @@ const ContinueButton = ({
               color: "#FFFFFF",
             }
       }
-      onMouseEnter={(e) => {
-        if (!disabled) {
-          e.currentTarget.style.backgroundColor = theme.primaryHover;
-        }
+      animate={{
+        backgroundColor: disabled ? theme.surface : theme.primary,
       }}
-      onMouseLeave={(e) => {
-        if (!disabled) {
-          e.currentTarget.style.backgroundColor = theme.primary;
-        }
-      }}
+      whileHover={!disabled ? { backgroundColor: theme.primaryHover, scale: 1.01 } : undefined}
+      whileTap={!disabled ? { scale: 0.98 } : undefined}
+      transition={{ type: "spring", stiffness: 500, damping: 32 }}
     >
       {children}
-    </button>
+    </motion.button>
   );
 };
 

@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { useState } from "react";
-import { useNavigate, useOutletContext } from "react-router";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import MOCK_RESOURCES from "../constants/mock_resources";
 import UploadResourceModal from "../components/UploadResourceModal";
 import { getVaultTheme } from "../constants/theme";

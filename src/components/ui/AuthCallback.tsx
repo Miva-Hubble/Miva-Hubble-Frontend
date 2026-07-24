@@ -6,8 +6,6 @@ export default function AuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  console.log("Callback mounted!");
-
   useEffect(() => {
     // Grab user status from the URL
     const success = searchParams.get("success");

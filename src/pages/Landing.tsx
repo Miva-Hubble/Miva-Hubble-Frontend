@@ -36,6 +36,7 @@ export default function LandingPage() {
   const [authError, setAuthError] = useState("");
 
   // Listen for backend error redirects
+  // Listen for backend error redirects
   useEffect(() => {
     const errorParam = searchParams.get("error");
     
