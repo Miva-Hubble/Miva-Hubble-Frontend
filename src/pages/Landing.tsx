@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, type ImgHTMLAttributes } from "react";
 import { useSearchParams } from "react-router-dom";
 import { authService } from "../services/authService";
+import GoogleAuthButton from "../features/auth/components/GoogleAuthButton";
 import {
   Users,
   MessageCircle,
@@ -34,6 +35,7 @@ export default function LandingPage() {
   const [isSignIn, setIsSignIn] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [authError, setAuthError] = useState("");
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
 
   // Listen for backend error redirects
   // Listen for backend error redirects
@@ -58,13 +60,9 @@ export default function LandingPage() {
   }, [searchParams, setSearchParams]);
 
   const handleGoogleAuth = () => {
-    if (isSignIn) {
-      console.log("Redirecting to Google Sign In...");
-      authService.initiateAuth();
-    } else {
-      console.log("Redirecting to Google Sign Up...");
-      authService.initiateAuth(); 
-    }
+    setIsAuthLoading(true);
+    setAuthError("");
+    authService.initiateAuth();
   };
 
   return (
@@ -280,20 +278,19 @@ export default function LandingPage() {
                 </motion.div>
               </AnimatePresence>
 
+              {/* Error Message */}
+              {authError && (
+                <div className="mb-4 p-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-xs font-medium leading-relaxed">
+                  {authError}
+                </div>
+              )}
+              
               {/* Action Button */}
-              <button
-                type="button"
+              <GoogleAuthButton
+                isSignIn={isSignIn}
+                isLoading={isAuthLoading}
                 onClick={handleGoogleAuth}
-                className="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-xl text-sm font-bold bg-[#e2e8f0] text-slate-900 hover:bg-white transition-all hover:scale-[1.02] active:scale-[0.98] mb-6 cursor-pointer"
-              >
-                <ImageWithFallback
-                  src="https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
-                  fallbackSrc="https://developers.google.com/static/identity/images/g-logo.png"
-                  alt="Google logo"
-                  className="w-5 h-5 object-contain"
-                />
-                {isSignIn ? "Sign in with Google" : "Sign up with Google"}
-              </button>
+              />
 
               {/* Toggle Text */}
               <div className="text-center text-sm font-medium mb-12">
@@ -301,8 +298,11 @@ export default function LandingPage() {
                   {isSignIn ? "Don't have an account? " : "Already have an account? "}
                 </span>
                 <button
-                  onClick={() => setIsSignIn(!isSignIn)}
-                  className="font-bold text-[#38bdf8] hover:text-sky-400 hover:underline transition-colors ml-1"
+                  onClick={() => {
+                    setAuthError("");
+                    setIsSignIn(!isSignIn);
+                  }}
+                  className="font-bold text-[#38bdf8] hover:text-sky-400 hover:underline transition-colors ml-1 cursor-pointer"
                 >
                   {isSignIn ? "Sign up" : "Sign in"}
                 </button>
