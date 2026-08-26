@@ -46,7 +46,7 @@ export const profileService = {
   
       // Send the final JSON payload to complete onboarding
       const finalPayload = {
-        level: data.level,
+        level: data.currentLevel,
         department: data.department,
         goals: data.goals,
         preferredMode: data.preferredMode,

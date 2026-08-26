@@ -94,7 +94,7 @@ const ProfileSetup = () => {
 
     try {
       await profileService.saveProfile({
-        level: formData.currentLevel,
+        currentLevel: formData.currentLevel,
         department: formData.department,
         goals: formData.goals,
         preferredMode: formData.preferredMode,
