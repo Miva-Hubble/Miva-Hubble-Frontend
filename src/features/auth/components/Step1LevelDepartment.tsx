@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, Search, X } from "lucide-react";
 import type { AskTheme } from "../../ask/constants/theme";
 import { levels } from "../../../constants/profile";
-import { profileService } from "../../../services/profileService";
+import DEPARTMENTS from "../constants/departments";
 import ContinueButton from "./ContinueButton";
 
 interface Step1LevelDepartmentProps {
@@ -23,31 +23,16 @@ const Step1LevelDepartment = ({
   onDepartmentChange,
   onContinue,
 }: Step1LevelDepartmentProps) => {
-  const [departments, setDepartments] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState(department);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isLoadingDepartments, setIsLoadingDepartments] = useState(true);
   const departmentInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Keep the search box in sync with the `department` prop (e.g. when a user
-  // navigates back to this step with a value already chosen). Rather than a
-  // useEffect that calls setState synchronously after render (which triggers
-  // an extra cascading render), we adjust state during render itself by
-  // comparing against the last department we've seen — this is the pattern
-  // React recommends for "resetting state when a prop changes".
   const [prevDepartment, setPrevDepartment] = useState(department);
   if (department !== prevDepartment) {
     setPrevDepartment(department);
     setSearchQuery(department);
   }
-
-  useEffect(() => {
-    profileService.fetchDepartments().then((data) => {
-      setDepartments(data);
-      setIsLoadingDepartments(false);
-    });
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -63,12 +48,13 @@ const Step1LevelDepartment = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredDepartments = departments.filter((dept) =>
+  // Filter against the static DEPARTMENTS array 
+  const filteredDepartments = DEPARTMENTS.filter((dept) =>
     dept.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleLevelSelect = (level: string | number) => {
-   onLevelChange(String(level)); 
+    onLevelChange(String(level)); 
   };
 
   const handleDepartmentSelect = (dept: string) => {
@@ -195,7 +181,7 @@ const Step1LevelDepartment = ({
                 type="button"
                 onClick={handleClearDepartment}
                 aria-label="Clear department"
-                className="absolute right-3 top-1/2 -translate-y-1/2"
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-70"
                 style={{ color: theme.textMuted }}
               >
                 <X className="h-4 w-4" />
@@ -216,20 +202,13 @@ const Step1LevelDepartment = ({
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.7 }}
               >
-                {isLoadingDepartments ? (
-                  <p
-                    className="px-4 py-3 text-sm"
-                    style={{ color: theme.textMuted }}
-                  >
-                    Loading...
-                  </p>
-                ) : filteredDepartments.length > 0 ? (
+                {filteredDepartments.length > 0 ? (
                   filteredDepartments.map((dept) => (
                     <motion.button
                       key={dept}
                       type="button"
                       onClick={() => handleDepartmentSelect(dept)}
-                      className="w-full px-4 py-3 text-left text-sm"
+                      className="w-full px-4 py-3 text-left text-sm cursor-pointer"
                       style={{
                         color:
                           department === dept

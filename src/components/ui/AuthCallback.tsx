@@ -1,29 +1,40 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { refreshUser } = useAuth();
 
   useEffect(() => {
-    // Grab user status from the URL
-    const success = searchParams.get("success");
-    const isNewUser = searchParams.get("isNewUser");
+    const handleAuthCallback = async () => {
+      const success = searchParams.get("success");
+      const isNewUser = searchParams.get("isNewUser");
 
-    if (success === "true") {
-      // Route the user based on their status
-      if (isNewUser === "true") {
-        navigate("/profile-setup"); 
-      } else {
-        navigate("/feed"); 
+      if (success !== "true") {
+        console.error("Auth failed: None or invalid cookies received");
+        navigate("/");
+        return;
       }
-    } else {
-      // Fallback: If success isn't true:
-      console.error("Auth failed: None or invalid cookies received");
-      navigate("/"); 
-    }
-  }, [navigate, searchParams]);
+
+      try {
+        await refreshUser();
+      } catch {
+        navigate("/");
+        return;
+      }
+
+      if (isNewUser === "true") {
+        navigate("/profile-setup");
+      } else {
+        navigate("/feed");
+      }
+    };
+
+    void handleAuthCallback();
+  }, [navigate, refreshUser, searchParams]);
 
   // Loading UI
   return (

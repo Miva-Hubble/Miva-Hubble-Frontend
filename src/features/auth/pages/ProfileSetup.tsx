@@ -98,6 +98,7 @@ const ProfileSetup = () => {
         department: formData.department,
         goals: formData.goals,
         preferredMode: formData.preferredMode,
+        profilePhoto: formData.profilePhoto,
       });
 
       setSaveStatus("success");
@@ -163,9 +164,9 @@ const ProfileSetup = () => {
               {currentStep === 3 && (
                 <Step3ProfilePhoto
                   theme={theme}
-                  profilePhoto={formData.profilePhoto}
+                  profilePhoto={formData.profilePhoto ?? null}
                   onPhotoChange={(file) =>
-                    setFormData((prev) => ({ ...prev, profilePhoto: file }))
+                    setFormData((prev) => ({ ...prev, profilePhoto: file ?? null }))
                   }
                   onFinish={handleComplete}
                   onSkip={handleComplete}

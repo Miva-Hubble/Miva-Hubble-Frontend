@@ -10,8 +10,10 @@
  * logic.
  */
 
+import axios from "axios";
 import { apiClient } from "../lib/axios/apiClient";
 import { authClient } from "../lib/axios/authClient";
+import type { User } from "../types/user";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -20,6 +22,18 @@ import { authClient } from "../lib/axios/authClient";
 interface InitiateAuthResponse {
   success: boolean;
   authUrl: string;
+}
+
+interface GetCurrentUserResponse {
+  success: boolean;
+  user: User;
+}
+
+export class UnauthorizedError extends Error {
+  constructor(message = "Unauthorized") {
+    super(message);
+    this.name = "UnauthorizedError";
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -35,6 +49,35 @@ export const authService = {
    * Errors are propagated to the caller — do not swallow them here so that
    * the UI can display a meaningful error state.
    */
+  /**
+   * Validates the current session cookie and returns the authenticated user.
+   * Throws `UnauthorizedError` when the session is missing or invalid.
+   */
+  getCurrentUser: async (): Promise<User> => {
+    try {
+      const { data } = await apiClient.get<GetCurrentUserResponse>(
+        "/api/user/me",
+      );
+
+      if (data.success && data.user) {
+        return data.user;
+      }
+
+      throw new UnauthorizedError("Failed to fetch authenticated user.");
+    } catch (error) {
+      if (
+        axios.isAxiosError(error) &&
+        (error.response?.status === 401 || error.response?.status === 403)
+      ) {
+        throw new UnauthorizedError(
+          error.response.data?.error ?? "Unauthorized",
+        );
+      }
+
+      throw error;
+    }
+  },
+
   initiateAuth: async (): Promise<void> => {
     const { data } = await authClient.get<InitiateAuthResponse>(
       "/api/auth/google",

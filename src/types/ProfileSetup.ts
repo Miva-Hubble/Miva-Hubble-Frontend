@@ -1,8 +1,8 @@
-export type PreferredMode = "anonymous" | "identified";
+export type PreferredMode = "identified" | "anonymous";
 
 export interface ProfileSetupData {
-  department: string;
   currentLevel: string;
+  department: string;
   goals: string[];
   preferredMode: PreferredMode;
   profilePhoto: File | null;

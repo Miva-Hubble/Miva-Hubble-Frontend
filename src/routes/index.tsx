@@ -1,4 +1,4 @@
-﻿import { Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 // Layouts
 import AppLayout from "../components/Layout/AppLayout";
@@ -22,25 +22,23 @@ import ProtectedRoute from "./ProtectedRoute";
 export const AppRoutes = () => {
   return (
     <Routes>
-      {/* UNWRAPPED ROUTE */}
+      {/* UNWRAPPED ROUTES */}
       <Route path="/auth-callback" element={<AuthCallback />} />
+      <Route path="/profile-setup" element={<ProfileSetupPage />} />
 
       {/* GUEST ROUTES */}
       {/* <Route element={<GuestRoute />}> */}
         <Route path="/" element={<LandingPage />} />
       {/* </Route> */}
       
-        <Route path="/profile-setup" element={<ProfileSetupPage />} />
       {/* PROTECTED ROUTES */}
       <Route element={<ProtectedRoute />}>
-
         <Route element={<AppLayout />}>
           <Route path="/feed" element={<FeedPage />} />          {/* Add more app features here */}
-          <Route path="/resources" element={<ResourcesPage />} />
           <Route path="/ask" element={<AskPage />} />
           <Route path="/ask/:id" element={<QuestionDetailPage />} />
+          <Route path="/resources" element={<ResourcesPage />} />
         </Route>
-        
       </Route>
       {/* CATCH ALL */}
       <Route path="*" element={<NotFoundPage />} />
