@@ -1,6 +1,7 @@
-import { Check } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
 import type { AskTheme } from "../../ask/constants/theme";
-import { GOALS, MAX_GOALS } from "../../../constants/profile";
+import { MAX_GOALS } from "../../../constants/profile";
+import { useTaxonomy } from "../../../hooks/useTaxonomy";
 import ContinueButton from "./ContinueButton";
 
 interface Step2GoalsProps {
@@ -16,8 +17,28 @@ const Step2Goals = ({
   onToggleGoal,
   onContinue,
 }: Step2GoalsProps) => {
+  const { goals, isLoading, isError, refetch } = useTaxonomy();
   const isMaxSelected = selectedGoals.length >= MAX_GOALS;
   const canContinue = selectedGoals.length === MAX_GOALS;
+
+  if (isError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center text-center gap-3">
+        <AlertTriangle className="h-6 w-6" style={{ color: theme.textMuted }} />
+        <p className="text-sm" style={{ color: theme.textSecondary }}>
+          Couldn't load goals.
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="text-sm font-semibold underline cursor-pointer"
+          style={{ color: theme.primary }}
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col">
@@ -51,51 +72,63 @@ const Step2Goals = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {GOALS.map((goal) => {
-            const isSelected = selectedGoals.includes(goal);
-            const isDisabled = !isSelected && isMaxSelected;
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-11 rounded-full animate-pulse"
+                style={{ backgroundColor: theme.surface }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {goals.map((goal) => {
+              const isSelected = selectedGoals.includes(goal);
+              const isDisabled = !isSelected && isMaxSelected;
 
-            return (
-              <button
-                key={goal}
-                type="button"
-                onClick={() => onToggleGoal(goal)}
-                disabled={isDisabled}
-                className="relative rounded-full px-4 py-3 text-left text-xs font-medium transition-all duration-200 sm:text-sm cursor-pointer"
-                style={
-                  isSelected
-                    ? {
-                        border: `1px solid ${theme.primary}`,
-                        backgroundColor: theme.primary,
-                        color: "#FFFFFF",
-                      }
-                    : isDisabled
+              return (
+                <button
+                  key={goal}
+                  type="button"
+                  onClick={() => onToggleGoal(goal)}
+                  disabled={isDisabled}
+                  className="relative rounded-full px-4 py-3 text-left text-xs font-medium transition-all duration-200 sm:text-sm cursor-pointer"
+                  style={
+                    isSelected
                       ? {
-                          border: `1px solid ${theme.border}`,
-                          backgroundColor: "transparent",
-                          color: theme.textMuted,
-                          opacity: 0.4,
-                          cursor: "not-allowed",
+                          border: `1px solid ${theme.primary}`,
+                          backgroundColor: theme.primary,
+                          color: "#FFFFFF",
                         }
-                      : {
-                          border: `1px solid ${theme.border}`,
-                          backgroundColor: "transparent",
-                          color: theme.tagText,
-                        }
-                }
-              >
-                {isSelected && (
-                  <Check
-                    className="mr-1.5 inline h-3.5 w-3.5"
-                    strokeWidth={2.5}
-                  />
-                )}
-                {goal}
-              </button>
-            );
-          })}
-        </div>
+                      : isDisabled
+                        ? {
+                            border: `1px solid ${theme.border}`,
+                            backgroundColor: "transparent",
+                            color: theme.textMuted,
+                            opacity: 0.4,
+                            cursor: "not-allowed",
+                          }
+                        : {
+                            border: `1px solid ${theme.border}`,
+                            backgroundColor: "transparent",
+                            color: theme.tagText,
+                          }
+                  }
+                >
+                  {isSelected && (
+                    <Check
+                      className="mr-1.5 inline h-3.5 w-3.5"
+                      strokeWidth={2.5}
+                    />
+                  )}
+                  {goal}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {isMaxSelected && (
           <p

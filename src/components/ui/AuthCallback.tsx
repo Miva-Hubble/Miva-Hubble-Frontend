@@ -11,7 +11,7 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       const success = searchParams.get("success");
-      const isNewUser = searchParams.get("isNewUser");
+      const isOnboarded = searchParams.get("isOnboarded");
 
       if (success !== "true") {
         console.error("Auth failed: None or invalid cookies received");
@@ -26,10 +26,13 @@ export default function AuthCallback() {
         return;
       }
 
-      if (isNewUser === "true") {
-        navigate("/profile-setup");
-      } else {
+      // Route on onboarding completion, not on whether the account is new —
+      // a returning user who dropped off mid-onboarding is just as unonboarded
+      // as a brand-new signup, and must land on the same setup flow.
+      if (isOnboarded === "true") {
         navigate("/feed");
+      } else {
+        navigate("/profile-setup");
       }
     };
 
