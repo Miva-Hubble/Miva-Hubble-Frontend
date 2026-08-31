@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Search, X } from "lucide-react";
+import { Check, Search, X, AlertTriangle } from "lucide-react";
 import type { AskTheme } from "../../ask/constants/theme";
-import { levels } from "../../../constants/profile";
-import DEPARTMENTS from "../constants/departments";
+import { useTaxonomy } from "../../../hooks/useTaxonomy";
 import ContinueButton from "./ContinueButton";
 
 interface Step1LevelDepartmentProps {
@@ -23,6 +22,7 @@ const Step1LevelDepartment = ({
   onDepartmentChange,
   onContinue,
 }: Step1LevelDepartmentProps) => {
+  const { levels, departments, isLoading, isError, refetch } = useTaxonomy();
   const [searchQuery, setSearchQuery] = useState(department);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const departmentInputRef = useRef<HTMLInputElement>(null);
@@ -48,13 +48,12 @@ const Step1LevelDepartment = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter against the static DEPARTMENTS array 
-  const filteredDepartments = DEPARTMENTS.filter((dept) =>
+  const filteredDepartments = departments.filter((dept) =>
     dept.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleLevelSelect = (level: string | number) => {
-    onLevelChange(String(level)); 
+    onLevelChange(String(level));
   };
 
   const handleDepartmentSelect = (dept: string) => {
@@ -70,6 +69,25 @@ const Step1LevelDepartment = ({
   };
 
   const isComplete = Boolean(currentLevel && department);
+
+  if (isError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center text-center gap-3">
+        <AlertTriangle className="h-6 w-6" style={{ color: theme.textMuted }} />
+        <p className="text-sm" style={{ color: theme.textSecondary }}>
+          Couldn't load levels and departments.
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="text-sm font-semibold underline cursor-pointer"
+          style={{ color: theme.primary }}
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col">
@@ -95,53 +113,65 @@ const Step1LevelDepartment = ({
           >
             YOUR LEVEL
           </p>
-          <div className="grid grid-cols-2 gap-3">
-          {levels.map((level) => {
-              const isSelected = String(currentLevel) === String(level);
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 rounded-xl animate-pulse"
+                  style={{ backgroundColor: theme.cardBg }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {levels.map((level) => {
+                const isSelected = String(currentLevel) === String(level);
 
-              return (
-                <motion.button
-                  key={level}
-                  type="button"
-                  onClick={() => handleLevelSelect(level)}
-                  className="relative rounded-xl px-4 py-3.5 text-sm font-medium cursor-pointer"
-                  style={
-                    isSelected
-                      ? {
-                          border: `1px solid ${theme.primary}`,
-                          backgroundColor: theme.primary + "1A",
-                          color: theme.answerText,
-                        }
-                      : {
-                          border: `1px solid ${theme.border}`,
-                          backgroundColor: theme.cardBg,
-                          color: theme.tagText,
-                        }
-                  }
-                  animate={{ scale: isSelected ? 1.02 : 1 }}
-                  whileHover={{ scale: isSelected ? 1.02 : 1.015 }}
-                  whileTap={{ scale: 0.97 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                >
-                  {level} Level
-                  <AnimatePresence>
-                    {isSelected && (
-                      <motion.span
-                        className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full"
-                        style={{ backgroundColor: theme.primary }}
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                      >
-                        <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </motion.button>
-              );
-            })}
-          </div>
+                return (
+                  <motion.button
+                    key={level}
+                    type="button"
+                    onClick={() => handleLevelSelect(level)}
+                    className="relative rounded-xl px-4 py-3.5 text-sm font-medium cursor-pointer"
+                    style={
+                      isSelected
+                        ? {
+                            border: `1px solid ${theme.primary}`,
+                            backgroundColor: theme.primary + "1A",
+                            color: theme.answerText,
+                          }
+                        : {
+                            border: `1px solid ${theme.border}`,
+                            backgroundColor: theme.cardBg,
+                            color: theme.tagText,
+                          }
+                    }
+                    animate={{ scale: isSelected ? 1.02 : 1 }}
+                    whileHover={{ scale: isSelected ? 1.02 : 1.015 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  >
+                    {level} Level
+                    <AnimatePresence>
+                      {isSelected && (
+                        <motion.span
+                          className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full"
+                          style={{ backgroundColor: theme.primary }}
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        >
+                          <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div ref={dropdownRef}>
@@ -151,46 +181,53 @@ const Step1LevelDepartment = ({
           >
             DEPARTMENT
           </p>
-          <div className="relative">
-            <Search
-              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2"
-              style={{ color: theme.textMuted }}
+          {isLoading ? (
+            <div
+              className="h-12 rounded-xl animate-pulse"
+              style={{ backgroundColor: theme.cardBg }}
             />
-            <input
-              ref={departmentInputRef}
-              type="text"
-              value={searchQuery}
-              placeholder="Search department..."
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setIsDropdownOpen(true);
-                if (department && e.target.value !== department) {
-                  onDepartmentChange("");
-                }
-              }}
-              onFocus={() => setIsDropdownOpen(true)}
-              className="w-full rounded-xl border py-3 pl-10 pr-10 text-sm transition-colors focus:outline-none"
-              style={{
-                backgroundColor: theme.input,
-                color: theme.textPrimary,
-                borderColor: department ? theme.primary : theme.border,
-              }}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={handleClearDepartment}
-                aria-label="Clear department"
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-70"
+          ) : (
+            <div className="relative">
+              <Search
+                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2"
                 style={{ color: theme.textMuted }}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
+              />
+              <input
+                ref={departmentInputRef}
+                type="text"
+                value={searchQuery}
+                placeholder="Search department..."
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsDropdownOpen(true);
+                  if (department && e.target.value !== department) {
+                    onDepartmentChange("");
+                  }
+                }}
+                onFocus={() => setIsDropdownOpen(true)}
+                className="w-full rounded-xl border py-3 pl-10 pr-10 text-sm transition-colors focus:outline-none"
+                style={{
+                  backgroundColor: theme.input,
+                  color: theme.textPrimary,
+                  borderColor: department ? theme.primary : theme.border,
+                }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearDepartment}
+                  aria-label="Clear department"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-70"
+                  style={{ color: theme.textMuted }}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          )}
 
           <AnimatePresence>
-            {isDropdownOpen && (
+            {isDropdownOpen && !isLoading && (
               <motion.div
                 className="mt-2 max-h-44 overflow-y-auto rounded-xl border backdrop-blur-sm"
                 style={{

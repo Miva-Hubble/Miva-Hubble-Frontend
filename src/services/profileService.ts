@@ -54,7 +54,7 @@ export const profileService = {
         ...(profilePicturePath && { profilePicturePath }), 
       };
   
-      const completeRes = await apiClient.post("/api/onboarding/complete", finalPayload);
+      const completeRes = await apiClient.post("/api/onboarding", finalPayload);
       
       return completeRes.data;
     },

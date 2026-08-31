@@ -2,10 +2,9 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { CheckCircle, Upload, X } from "lucide-react";
 import POPULAR_CATEGORIES from "../constants/popular_categories";
-import { VAULT_DEPARTMENTS } from "../constants/departments";
 import type { VaultTheme } from "../constants/theme";
 import { uploadResource } from "../services/uploadResource";
-import { levels } from "../../../constants/profile";
+import { useTaxonomy } from "../../../hooks/useTaxonomy";
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
@@ -16,6 +15,7 @@ type UploadResourceModalProps = {
 };
 
 export default function UploadResourceModal({ open, onClose, theme }: UploadResourceModalProps) {
+  const { departments, levels } = useTaxonomy();
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadCourseCode, setUploadCourseCode] = useState("");
   const [uploadLevel, setUploadLevel] = useState("");
@@ -271,7 +271,7 @@ export default function UploadResourceModal({ open, onClose, theme }: UploadReso
                         Department(s) *
                       </label>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {VAULT_DEPARTMENTS.map((dept) => (
+                        {departments.map((dept) => (
                           <label
                             key={dept}
                             className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200"

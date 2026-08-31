@@ -1,25 +1,26 @@
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import MOCK_RESOURCES from "../constants/mock_resources";
 import UploadResourceModal from "../components/UploadResourceModal";
+import ResourceCard from "../components/ResourceCard";
 import { getVaultTheme } from "../constants/theme";
-import DEPARTMENTS from "../../auth/constants/departments";
-import { 
-  FileText,
+import { CATEGORY_LABELS } from "../constants/categoryLabels";
+import { FILE_FORMATS } from "../../../types/resource";
+import { useTaxonomy } from "../../../hooks/useTaxonomy";
+import { useResources } from "../hooks/useResources";
+import { getUserFriendlyError, logTechnicalError } from "../../../lib/errors/getUserFriendlyError";
+import {
   ChevronDown,
-  Eye,
-  Download,
-  FileCode,
-  File,
   Search,
   Heart,
   History,
-  CheckCircle2,
-  PlaySquare,
-  BookOpen,
-  Trophy
+  Trophy,
+  Inbox,
+  AlertTriangle,
+  RotateCw,
 } from "lucide-react";
+
+const FILTER_TABS = ["All Resources", ...CATEGORY_LABELS];
 
 export default function Vault() {
   const { isDarkMode } = useOutletContext<{ isDarkMode: boolean }>();
@@ -31,24 +32,47 @@ export default function Vault() {
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const theme = getVaultTheme(isDarkMode);
-    
-  const getFileIcon = (fileType: string) => {
-    switch (fileType.toUpperCase()) {
-      case "PDF":
-        return <FileText className="w-5 h-5" />;
-      case "DOCX":
-      case "DOC":
-        return <File className="w-5 h-5" />
-      case "CODE":
-        return <FileCode className="w-5 h-5" />
-      case "VIDEO":
-        return <PlaySquare className="w-5 h-5" />
-      case "PPTX":
-        return <BookOpen className="w-5 h-5" />
-      default:
-        return <FileText className="w-5 h-5" />
+  const { departments, levels, isLoading: taxonomyLoading } = useTaxonomy();
+  const { resources, isLoading, isError, error, isEmpty, refetch, isRefetching } = useResources();
+
+  if (isError) {
+    logTechnicalError("[Vault]", error);
+  }
+
+  const filteredResources = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return resources.filter((resource) => {
+      if (selectedLevel !== "All" && resource.level !== selectedLevel) return false;
+      if (selectedDepartment !== "All" && resource.department !== selectedDepartment) return false;
+      if (selectedFileType !== "All" && resource.fileType !== selectedFileType) return false;
+      if (activeFilterTab !== "All Resources" && resource.category !== activeFilterTab) return false;
+
+      if (query.length > 0) {
+        const haystack = `${resource.title} ${resource.courseCode} ${resource.courseName}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
       }
-    };
+
+      return true;
+    });
+  }, [resources, selectedLevel, selectedDepartment, selectedFileType, activeFilterTab, searchQuery]);
+
+  const hasActiveFilters =
+    selectedLevel !== "All" ||
+    selectedDepartment !== "All" ||
+    selectedFileType !== "All" ||
+    activeFilterTab !== "All Resources" ||
+    searchQuery.trim().length > 0;
+
+  const clearFilters = () => {
+    setSelectedLevel("All");
+    setSelectedDepartment("All");
+    setSelectedFileType("All");
+    setActiveFilterTab("All Resources");
+    setSearchQuery("");
+  };
+
+  const noFilterMatches = !isLoading && !isError && !isEmpty && filteredResources.length === 0;
 
   return (
     <div
@@ -100,7 +124,7 @@ export default function Vault() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             {/* Filter Tabs */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-              {["All Resources", "Study Guides", "Past Exams", "Notes"].map((tab) => (
+              {FILTER_TABS.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveFilterTab(tab)}
@@ -123,15 +147,14 @@ export default function Vault() {
                 <select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
+                  disabled={taxonomyLoading}
                   className="appearance-none outline-none flex items-center gap-2 pl-3 pr-8 py-1.5 rounded-lg border text-sm cursor-pointer hover:bg-white/5 transition-colors"
                   style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textSecondary }}
                 >
                   <option value="All">Level: All</option>
-                  <option value="100 level">100 Level</option>
-                  <option value="200 level">200 Level</option>
-                  <option value="300 level">300 Level</option>
-                  <option value="400 level">400 Level</option>
-                  <option value="500 level">500 Level</option>
+                  {levels.map((level) => (
+                    <option key={level} value={level}>Level {level}</option>
+                  ))}
                 </select>
                 <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: theme.textSecondary }} />
               </div>
@@ -140,11 +163,12 @@ export default function Vault() {
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
+                  disabled={taxonomyLoading}
                   className="appearance-none outline-none flex items-center gap-2 pl-3 pr-8 py-1.5 rounded-lg border text-sm cursor-pointer hover:bg-white/5 transition-colors"
                   style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textSecondary }}
                 >
                   <option value="All">Department: All</option>
-                  {DEPARTMENTS.map((dept) => (
+                  {departments.map((dept) => (
                     <option key={dept} value={dept}>{dept}</option>
                   ))}
                 </select>
@@ -159,11 +183,9 @@ export default function Vault() {
                   style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textSecondary }}
                 >
                   <option value="All">File Type: All</option>
-                  <option value="PDF">PDF</option>
-                  <option value="DOCX">DOCX / DOC</option>
-                  <option value="PPTX">PPTX</option>
-                  <option value="CODE">CODE</option>
-                  <option value="VIDEO">VIDEO</option>
+                  {FILE_FORMATS.map((format) => (
+                    <option key={format} value={format}>{format}</option>
+                  ))}
                 </select>
                 <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: theme.textSecondary }} />
               </div>
@@ -197,135 +219,113 @@ export default function Vault() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {MOCK_RESOURCES.map((resource, index) => (
-                <motion.article
-                  key={resource.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="rounded-2xl border p-5 flex flex-col transition-all duration-300 hover:border-slate-600 hover:bg-white/[0.02]"
-                  style={{
-                    backgroundColor: theme.cardBg,
-                    borderColor: theme.border,
-                  }}
+            {isLoading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="rounded-2xl border p-5 h-64 animate-pulse"
+                    style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {!isLoading && isError && (
+              <div
+                className="rounded-2xl border p-10 flex flex-col items-center justify-center text-center"
+                style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+              >
+                <div className="w-12 h-12 rounded-full mb-3 flex items-center justify-center" style={{ backgroundColor: theme.accentBg }}>
+                  <AlertTriangle className="w-5 h-5" style={{ color: theme.textMuted }} />
+                </div>
+                <p className="text-sm font-medium mb-1" style={{ color: theme.textPrimary }}>
+                  Couldn't load the Vault
+                </p>
+                <p className="text-xs mb-4" style={{ color: theme.textMuted }}>
+                  {getUserFriendlyError(error)}
+                </p>
+                <button
+                  onClick={() => refetch()}
+                  disabled={isRefetching}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer"
+                  style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
                 >
-                  {/* Top Row: Icon and Badge */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div 
-                      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: theme.accentBg, color: theme.textSecondary }}
-                    >
-                      {getFileIcon(resource.fileType)}
-                    </div>
-                    {/* Verified Badge & Favorite */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 px-2 py-1 rounded border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold tracking-wider uppercase">
-                        <CheckCircle2 className="w-3 h-3" />
-                        Verified
-                      </div>
-                      <button className="p-1.5 rounded-full transition-colors hover:bg-white/10 cursor-pointer text-slate-400 hover:text-rose-400">
-                        <Heart className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+                  <RotateCw className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`} />
+                  {isRefetching ? "Retrying..." : "Try Again"}
+                </button>
+              </div>
+            )}
 
-                  {/* Course Code & Type */}
-                  <div className="text-[11px] font-bold tracking-wider uppercase mb-2" style={{ color: theme.textMuted }}>
-                    {resource.courseCode} · {resource.fileType}
-                  </div>
+            {!isLoading && !isError && isEmpty && (
+              <div
+                className="rounded-2xl border p-10 flex flex-col items-center justify-center text-center"
+                style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+              >
+                <div className="w-12 h-12 rounded-full mb-3 flex items-center justify-center" style={{ backgroundColor: theme.accentBg }}>
+                  <Inbox className="w-5 h-5" style={{ color: theme.textMuted }} />
+                </div>
+                <p className="text-sm font-medium mb-1" style={{ color: theme.textPrimary }}>
+                  No resources yet
+                </p>
+                <p className="text-xs" style={{ color: theme.textMuted }}>
+                  The admin hasn't uploaded any resources yet. Check back soon.
+                </p>
+              </div>
+            )}
 
-                  {/* Title & Description */}
-                  <h3 className="text-base font-bold mb-2 leading-snug line-clamp-2" style={{ color: theme.textPrimary }}>
-                    {resource.title}
-                  </h3>
-                  <p className="text-xs line-clamp-2 mb-4" style={{ color: theme.textSecondary }}>
-                    Comprehensive notes covering {resource.courseName} topics.
-                  </p>
+            {noFilterMatches && (
+              <div
+                className="rounded-2xl border p-10 flex flex-col items-center justify-center text-center"
+                style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+              >
+                <div className="w-12 h-12 rounded-full mb-3 flex items-center justify-center" style={{ backgroundColor: theme.accentBg }}>
+                  <Inbox className="w-5 h-5" style={{ color: theme.textMuted }} />
+                </div>
+                <p className="text-sm font-medium mb-1" style={{ color: theme.textPrimary }}>
+                  No resources match your filters
+                </p>
+                <p className="text-xs mb-4" style={{ color: theme.textMuted }}>
+                  Try adjusting or clearing your filters.
+                </p>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:brightness-110 cursor-pointer"
+                    style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            )}
 
-                  {/* Tags */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <span 
-                      className="text-[11px] font-medium px-2 py-1 rounded"
-                      style={{ backgroundColor: theme.accentBg, color: theme.textSecondary }}
-                    >
-                      Level {resource.level}
-                    </span>
-                    <span 
-                      className="text-[11px] font-medium px-2 py-1 rounded"
-                      style={{ backgroundColor: theme.accentBg, color: theme.textSecondary }}
-                    >
-                      CS
-                    </span>
-                  </div>
-
-                  {/* Spacer to push footer down */}
-                  <div className="flex-1"></div>
-
-                  {/* Uploader & Rating */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-slate-600 overflow-hidden shrink-0">
-                        {/* Placeholder for avatar */}
-                        <div className="w-full h-full bg-linear-to-tr from-slate-400 to-slate-300"></div>
-                      </div>
-                      <span className="text-xs font-semibold" style={{ color: theme.textPrimary }}>
-                        {resource.uploadedBy}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-emerald-400">
-                      <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      <span className="text-xs font-bold">4.9</span>
-                    </div>
-                  </div>
-
-                  {/* Stats & Time */}
-                  <div className="flex items-center justify-between mb-4 text-[11px]" style={{ color: theme.textMuted }}>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1">
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>{resource.stats.views > 1000 ? (resource.stats.views/1000).toFixed(1) + 'k' : resource.stats.views}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Download className="w-3.5 h-3.5" />
-                        <span>{resource.stats.downloads > 1000 ? (resource.stats.downloads/1000).toFixed(1) + 'k' : resource.stats.downloads}</span>
-                      </div>
-                    </div>
-                    <span>{resource.timestamp}</span>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2">
-                    <button 
-                      className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-all hover:brightness-110 cursor-pointer"
-                      style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
-                    >
-                      <Download className="w-4 h-4" />
-                      Download
-                    </button>
-                    <button 
-                      className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium border transition-colors hover:bg-white/5 cursor-pointer"
-                      style={{ borderColor: theme.border, color: theme.textSecondary }}
-                    >
-                      <Eye className="w-4 h-4" />
-                      Preview
-                    </button>
-                  </div>
-                </motion.article>
-              ))}
-            </div>
+            {!isLoading && !isError && !isEmpty && filteredResources.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredResources.map((resource, index) => (
+                  <motion.div
+                    key={resource.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    <ResourceCard resource={resource} theme={theme} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
 
             {/* Load More Button */}
-            <div className="mt-8 flex justify-center">
-              <button 
-                className="px-6 py-2.5 rounded-full text-sm font-medium transition-colors hover:bg-white/10 cursor-pointer"
-                style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.textPrimary }}
-              >
-                Load More Resources
-              </button>
-            </div>
+            {!isLoading && !isError && !isEmpty && !noFilterMatches && (
+              <div className="mt-8 flex justify-center">
+                <button 
+                  className="px-6 py-2.5 rounded-full text-sm font-medium transition-colors hover:bg-white/10 cursor-pointer"
+                  style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.textPrimary }}
+                >
+                  Load More Resources
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Right Column: Sidebar */}
