@@ -64,7 +64,7 @@ export default function Vault() {
       if (selectedDepartment !== "All" && resource.department !== selectedDepartment) return false;
       if (selectedFileType !== "All" && resource.fileFormat !== selectedFileType) return false;
       if (query.length > 0) {
-        const haystack = `${resource.title} ${resource.courseCode} ${resource.courseTitle} ${resource.description ?? ""}`.toLowerCase();
+        const haystack = `${resource.title} ${resource.courseCode ?? ""} ${resource.courseTitle ?? ""} ${resource.description ?? ""}`.toLowerCase();
         if (!haystack.includes(query)) return false;
       }
 

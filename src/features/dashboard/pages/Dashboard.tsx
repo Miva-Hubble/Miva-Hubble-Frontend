@@ -10,6 +10,16 @@ import { useMyProgress } from "../../resources/hooks/useMyProgress";
 import { useMyStudentResources } from "../../resources/hooks/useMyStudentResources";
 import { academicWings } from "../constants/dashboardMockData";
 
+// Mirrors the backend's getLagosCalendarDate (Intl.DateTimeFormat with
+// timeZone: "Africa/Lagos") so the quest-step checklist resets on the same
+// day boundary as the daily-goal ring and streak it sits beside — a
+// resource uploaded/submitted "today" in Lagos must read as today here too,
+// regardless of the browser's own timezone.
+function isLagosToday(isoDate: string): boolean {
+  const lagosDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(d);
+  return lagosDay(new Date(isoDate)) === lagosDay(new Date());
+}
+
 export default function Dashboard() {
   const { isDarkMode } = useOutletContext<{ isDarkMode: boolean }>();
   const theme = getDashboardTheme(isDarkMode);
@@ -185,31 +195,43 @@ function GoalCard({
 }) {
   const percentage = progress?.dailyGoal.percentage ?? 0;
   const streak = progress?.streak.current ?? 0;
-  const approvedToday = progress?.dailyGoal.activeCount ?? 0;
-  const hasUploaded = resources.length > 0;
-  const hasSubmitted = resources.some((resource) => resource.status !== "DRAFT");
-  const hasApproval = resources.some((resource) => resource.status === "APPROVED");
+  const dailyTarget = progress?.dailyGoal.target ?? 3;
+  const approvedToday = Math.min(progress?.dailyGoal.activeCount ?? 0, dailyTarget);
+  const nextRank = progress?.rank.nextRank ?? null;
+  // Daily, not lifetime — resets every Lagos calendar day, same as the ring
+  // above. A resource uploaded/submitted yesterday must not keep tomorrow's
+  // checklist looking finished.
+  const hasUploadedToday = resources.some((resource) => isLagosToday(resource.createdAt));
+  const hasSubmittedToday = resources.some(
+    (resource) => resource.status !== "DRAFT" && isLagosToday(resource.submittedAt)
+  );
+  // Reuses dailyGoal.activeCount directly rather than scanning resources for
+  // approvedAt — activeCount is already the backend's Lagos-day-aware,
+  // revocation-aware count of today's approvals; recomputing it here from
+  // raw timestamps would risk quietly disagreeing with the ring it sits
+  // right next to.
+  const hasApprovalToday = (progress?.dailyGoal.activeCount ?? 0) > 0;
 
   const questSteps = [
     {
       id: 1,
       label: "Upload a quality study resource",
-      complete: hasUploaded,
-      statusLabel: hasUploaded ? "Uploaded to Vault" : "Pending upload",
+      complete: hasUploadedToday,
+      statusLabel: hasUploadedToday ? "Uploaded to Vault" : "Pending upload",
       icon: CloudUpload,
     },
     {
       id: 2,
       label: "Submit it for admin review",
-      complete: hasSubmitted,
-      statusLabel: hasSubmitted ? "Submitted • In Review" : "Pending submission",
+      complete: hasSubmittedToday,
+      statusLabel: hasSubmittedToday ? "Submitted • In Review" : "Pending submission",
       icon: Clock3,
     },
     {
       id: 3,
       label: "Receive an admin approval",
-      complete: hasApproval,
-      statusLabel: hasApproval ? "Approved & Published" : "Awaiting approval",
+      complete: hasApprovalToday,
+      statusLabel: hasApprovalToday ? "Approved & Published" : "Awaiting approval",
       icon: Trophy,
     },
   ];
@@ -257,13 +279,15 @@ function GoalCard({
             </div>
             <div>
               <p className="text-xs sm:text-sm font-bold" style={{ color: theme.primary }}>
-                {approvedToday} / {progress?.dailyGoal.target ?? 3} approved today
+                {approvedToday} / {dailyTarget} approved today
               </p>
               <p className="text-[11px] mt-0.5" style={{ color: theme.accent }}>
                 Only approvals advance your daily goal
               </p>
               <p className="text-[10px] mt-0.5" style={{ color: theme.textMuted }}>
-                Complete each step to advance your rank.
+                {nextRank
+                  ? `${nextRank.resourcesRemaining} more approved resource${nextRank.resourcesRemaining === 1 ? "" : "s"} to reach ${nextRank.name}`
+                  : "You've reached the top rank — Ultimate."}
               </p>
             </div>
           </div>
