@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
-import { useOutletContext, useSearchParams } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import UploadResourceModal from "../components/UploadResourceModal";
 import { VaultResourceCard } from "../components/VaultResourceCard";
 import MyResourceCard from "../components/MyResourceCard";
@@ -31,24 +31,24 @@ export default function Vault() {
   const [selectedFileType, setSelectedFileType] = useState("All");
   const [activeFilterTab, setActiveFilterTab] = useState("All Resources");
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const theme = getVaultTheme(isDarkMode);
   const { departments, levels, isLoading: taxonomyLoading } = useTaxonomy();
+
+  // GET /api/vault — unified admin-Book + approved-StudentResource feed,
+  // already server-filtered to this student's own level/department.
   const { resources, isLoading, isError, error, refetch, isRefetching } = useVaultResources();
+
+  // GET /api/student-resources/mine — this student's own submissions in
+  // every status. Ownership-based, not eligibility-filtered, which is why
+  // it's a separate hook/request rather than a filter on top of the feed
+  // above (a DRAFT/REJECTED resource never appears in /api/vault at all).
   const {
     resources: myStudentResources,
     isLoading: myResourcesLoading,
     isError: myResourcesError,
     refetch: refetchMyResources,
   } = useMyStudentResources();
-
-  useEffect(() => {
-    if (searchParams.get("upload") === "1") {
-      setShowUploadModal(true);
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
 
   if (isError) {
     logTechnicalError("[Vault]", error);
@@ -70,7 +70,7 @@ export default function Vault() {
 
       return true;
     });
-  }, [resources, selectedLevel, selectedDepartment, selectedFileType, activeFilterTab, searchQuery]);
+  }, [resources, selectedLevel, selectedDepartment, selectedFileType, searchQuery]);
 
   const filteredMyResources = useMemo(() => {
     if (!isMyResourcesTab) return [];
@@ -112,7 +112,6 @@ export default function Vault() {
       }}
     >
       <div className="w-full">
-        
         {/* Header Section */}
         <div className="pt-2 pb-5 sm:pt-4 sm:pb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3 sm:mb-4">
@@ -136,7 +135,7 @@ export default function Vault() {
           </div>
 
           {/* Search Bar — Apple-style integrated pill */}
-          <div 
+          <div
             className="flex items-center gap-3 px-4 py-2.5 sm:py-3 rounded-2xl shadow-sm mb-4 sm:mb-6"
             style={{
               backgroundColor: theme.cardBg,
@@ -152,7 +151,7 @@ export default function Vault() {
               className="flex-1 bg-transparent focus:outline-none text-xs sm:text-sm"
               style={{ color: theme.textPrimary }}
             />
-            <div 
+            <div
               className="hidden md:flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-semibold"
               style={{ backgroundColor: "rgba(255, 255, 255, 0.06)", color: theme.textMuted }}
             >
@@ -256,7 +255,6 @@ export default function Vault() {
 
         {/* Main Content Layout */}
         <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
-          
           {/* Left Column: Resource Grid */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -446,7 +444,6 @@ export default function Vault() {
 
           {/* Right Column: Sidebar */}
           <div className="w-full lg:w-80 shrink-0 space-y-5 sm:space-y-6">
-            
             {/* My Favorites (Empty State) */}
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -455,7 +452,7 @@ export default function Vault() {
                 </h3>
                 <Heart className="w-4 h-4" style={{ color: theme.textSecondary }} />
               </div>
-              <div 
+              <div
                 className="rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center text-center shadow-sm"
                 style={{
                   backgroundColor: theme.cardBg,
@@ -479,7 +476,7 @@ export default function Vault() {
                   Recently Viewed
                 </h3>
               </div>
-              <div 
+              <div
                 className="rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center text-center shadow-sm"
                 style={{
                   backgroundColor: theme.cardBg,
@@ -495,7 +492,6 @@ export default function Vault() {
                 </p>
               </div>
             </div>
-
           </div>
         </div>
       </div>
