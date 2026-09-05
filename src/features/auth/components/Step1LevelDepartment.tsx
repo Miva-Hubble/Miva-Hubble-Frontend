@@ -68,7 +68,9 @@ const Step1LevelDepartment = ({
     departmentInputRef.current?.focus();
   };
 
-  const isComplete = Boolean(currentLevel && department);
+  // Persist only canonical taxonomy values returned by the backend. This
+  // protects onboarding from stale local values that would not match Vault.
+  const isComplete = levels.includes(currentLevel) && departments.includes(department);
 
   if (isError) {
     return (
