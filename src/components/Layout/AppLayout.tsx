@@ -26,7 +26,7 @@ export default function AppLayout() {
       />
 
       <main className="flex-1 flex flex-col overflow-y-auto">
-        <div className="flex-1 w-full max-w-7xl mx-auto p-6">
+        <div className="flex-1 w-full max-w-7xl mx-auto px-3.5 py-4 sm:px-6 sm:py-6 lg:px-8">
           <Outlet context={{ isDarkMode }}/>
         </div>
       </main>

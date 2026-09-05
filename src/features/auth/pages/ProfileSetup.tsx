@@ -7,6 +7,7 @@ import Step1LevelDepartment from "../components/Step1LevelDepartment";
 import Step2Goals from "../components/Step2Goals";
 import Step3ProfilePhoto from "../components/Step3ProfilePhoto";
 import { MAX_GOALS } from "../../../constants/profile";
+import { useTaxonomy } from "../../../hooks/useTaxonomy";
 import { profileService } from "../../../services/profileService";
 import type { ProfileSetupData } from "../../../types/ProfileSetup";
 import type { AsyncStatus } from "../../../types/async";
@@ -42,6 +43,7 @@ const ProfileSetup = () => {
   const [direction, setDirection] = useState(1);
   const [saveStatus, setSaveStatus] = useState<AsyncStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { levels, departments, isLoading: isTaxonomyLoading } = useTaxonomy();
   const isSaving = saveStatus === "loading";
   const [formData, setFormData] = useState<ProfileSetupData>({
     department: "",
@@ -89,6 +91,20 @@ const ProfileSetup = () => {
   const handleComplete = async () => {
     if (isSaving) return; // guard against double-submits (e.g. double-click)
 
+    if (isTaxonomyLoading) {
+      setErrorMessage("We are still loading the available levels and departments. Please try again in a moment.");
+      return;
+    }
+
+    if (
+      !levels.includes(formData.currentLevel) ||
+      !departments.includes(formData.department)
+    ) {
+      setErrorMessage("Choose a valid level and department before completing your profile.");
+      setCurrentStep(1);
+      return;
+    }
+
     setSaveStatus("loading");
     setErrorMessage(null);
 
@@ -102,7 +118,7 @@ const ProfileSetup = () => {
       });
 
       setSaveStatus("success");
-      navigate("/feed");
+      navigate("/dashboard");
     } catch (error) {
       logTechnicalError("[ProfileSetup] Failed to save profile:", error);
       setErrorMessage(getUserFriendlyError(error));

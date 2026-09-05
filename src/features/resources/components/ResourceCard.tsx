@@ -6,11 +6,8 @@ import { useResourceDownload } from "../hooks/useResourceDownload";
 import { ImageWithFallback } from "./ImageWithFallback";
 import ResourcePreviewModal from "./ResourcePreviewModal";
 
-// Fixed book-cover dimensions (2:3 ratio) — closely matches real book
-// proportions while staying compact in a dense grid. Only applied when a
-// real cover exists; cards without one skip the image slot entirely.
-const COVER_WIDTH = 80;
-const COVER_HEIGHT = 80;
+const COVER_WIDTH = 72;
+const COVER_HEIGHT = 72;
 
 function getFileIcon(fileType: string) {
   switch (fileType.toUpperCase()) {
@@ -53,14 +50,17 @@ export default function ResourceCard({ resource, theme }: ResourceCardProps) {
   return (
     <>
       <article
-        className="rounded-2xl border overflow-hidden flex flex-col transition-all duration-300 hover:border-slate-600 hover:bg-white/[0.02]"
-        style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+        className="rounded-3xl overflow-hidden flex flex-col transition-all duration-200 shadow-sm active:scale-[0.99]"
+        style={{
+          backgroundColor: theme.cardBg,
+          border: "1px solid rgba(255, 255, 255, 0.07)",
+        }}
       >
         {/* Icon/heart row */}
-        <div className="flex justify-between items-start p-5 pb-0 gap-3">
+        <div className="flex justify-between items-start p-4 sm:p-5 pb-0 gap-3">
           {hasCover ? (
             <div
-              className="relative shrink-0 overflow-hidden rounded-lg"
+              className="relative shrink-0 overflow-hidden rounded-2xl shadow-sm"
               style={{ width: COVER_WIDTH, height: COVER_HEIGHT, backgroundColor: theme.accentBg }}
             >
               <ImageWithFallback
@@ -71,15 +71,15 @@ export default function ResourceCard({ resource, theme }: ResourceCardProps) {
             </div>
           ) : (
             <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: theme.accentBg, color: theme.textSecondary }}
+              className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm"
+              style={{ backgroundColor: "rgba(255, 255, 255, 0.05)", color: theme.textSecondary }}
             >
               {getFileIcon(resource.fileType)}
             </div>
           )}
           <button
             onClick={() => setIsLiked(!isLiked)}
-            className={`p-1.5 rounded-full transition-colors hover:bg-white/10 cursor-pointer ${
+            className={`p-2 rounded-full transition-colors hover:bg-white/10 active:scale-90 cursor-pointer ${
               isLiked ? "text-rose-500" : "text-slate-400 hover:text-rose-400"
             } shrink-0`}
             aria-label="Save to favorites"
@@ -88,28 +88,28 @@ export default function ResourceCard({ resource, theme }: ResourceCardProps) {
           </button>
         </div>
 
-        <div className="p-5 pt-4 flex flex-col flex-1">
-          <div className="text-[11px] font-bold tracking-wider uppercase mb-2" style={{ color: theme.textMuted }}>
+        <div className="p-4 sm:p-5 pt-3 flex flex-col flex-1">
+          <div className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase mb-1.5" style={{ color: theme.textMuted }}>
             {resource.courseCode} · {resource.fileType}
           </div>
 
-          <h3 className="text-base font-bold mb-2 leading-snug line-clamp-2" style={{ color: theme.textPrimary }}>
+          <h3 className="text-sm sm:text-base font-bold mb-1.5 leading-snug line-clamp-2" style={{ color: theme.textPrimary }}>
             {resource.title}
           </h3>
-          <p className="text-xs line-clamp-2 mb-4" style={{ color: theme.textSecondary }}>
+          <p className="text-xs line-clamp-2 mb-3 leading-relaxed" style={{ color: theme.textSecondary }}>
             {resource.courseName}
           </p>
 
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-1.5 mb-3">
             <span
-              className="text-[11px] font-medium px-2 py-1 rounded"
-              style={{ backgroundColor: theme.accentBg, color: theme.textSecondary }}
+              className="text-[10px] sm:text-[11px] font-medium px-2.5 py-0.5 rounded-full"
+              style={{ backgroundColor: "rgba(255, 255, 255, 0.05)", color: theme.textSecondary }}
             >
               Level {resource.level}
             </span>
             <span
-              className="text-[11px] font-medium px-2 py-1 rounded"
-              style={{ backgroundColor: theme.accentBg, color: theme.textSecondary }}
+              className="text-[10px] sm:text-[11px] font-medium px-2.5 py-0.5 rounded-full"
+              style={{ backgroundColor: "rgba(255, 255, 255, 0.05)", color: theme.textSecondary }}
             >
               CS
             </span>
@@ -117,22 +117,23 @@ export default function ResourceCard({ resource, theme }: ResourceCardProps) {
 
           <div className="flex-1" />
 
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3 pt-1">
             <div className="flex items-center gap-2">
               <div
-                className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                style={{ backgroundColor: theme.accentBg, color: theme.textSecondary }}
+                className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                style={{ backgroundColor: "rgba(255, 255, 255, 0.07)", color: theme.textSecondary }}
               >
-                <User className="w-3.5 h-3.5" />
+                <User className="w-3 h-3" />
               </div>
-              <span className="text-xs font-semibold" style={{ color: theme.textPrimary }}>
+              <span className="text-xs font-medium truncate max-w-[120px]" style={{ color: theme.textPrimary }}>
                 {resource.uploadedBy}
               </span>
             </div>
+            <span className="text-[10px] sm:text-[11px]" style={{ color: theme.textMuted }}>{resource.timestamp}</span>
           </div>
 
-          {/* Stats row - displays exact server values without client-side spoofing */}
-          <div className="flex items-center justify-between mb-4 text-[11px]" style={{ color: theme.textMuted }}>
+          {/* Stats row */}
+          <div className="flex items-center justify-between mb-3 text-[11px]" style={{ color: theme.textMuted }}>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
                 <Eye className="w-3.5 h-3.5" />
@@ -143,7 +144,6 @@ export default function ResourceCard({ resource, theme }: ResourceCardProps) {
                 <span>{formatCount(resource.stats?.downloads ?? 0)}</span>
               </div>
             </div>
-            <span>{resource.timestamp}</span>
           </div>
 
           {error && !isPreviewOpen && (
@@ -156,19 +156,22 @@ export default function ResourceCard({ resource, theme }: ResourceCardProps) {
             <button
               onClick={() => download(resource.id, resource.title)}
               disabled={isDownloading}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all hover:brightness-110 active:scale-95 disabled:opacity-60 cursor-pointer shadow-sm"
               style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
             >
-              {isDownloading ? <RotateCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {isDownloading ? <RotateCw className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
               {isDownloading ? "Preparing..." : "Download"}
             </button>
             <button
               onClick={() => preview(resource.id, resource.fileType)}
               disabled={isPreviewing}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium border transition-colors hover:bg-white/5 disabled:opacity-60 cursor-pointer"
-              style={{ borderColor: theme.border, color: theme.textSecondary }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all hover:bg-white/10 active:scale-95 disabled:opacity-60 cursor-pointer"
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                color: theme.textSecondary,
+              }}
             >
-              {isPreviewing ? <RotateCw className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+              {isPreviewing ? <RotateCw className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
               {isPreviewing ? "Opening..." : "Preview"}
             </button>
           </div>
