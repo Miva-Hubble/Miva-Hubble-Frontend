@@ -30,7 +30,7 @@ export default function AuthCallback() {
       // a returning user who dropped off mid-onboarding is just as unonboarded
       // as a brand-new signup, and must land on the same setup flow.
       if (isOnboarded === "true") {
-        navigate("/feed");
+        navigate("/dashboard");
       } else {
         navigate("/profile-setup");
       }

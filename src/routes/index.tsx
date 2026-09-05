@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 // Layouts
 import AppLayout from "../components/Layout/AppLayout";
@@ -10,14 +10,13 @@ import AuthCallback from "../components/ui/AuthCallback";
 
 // Feature Pages
 import ProfileSetupPage from "../features/auth/pages/ProfileSetup";
-import FeedPage from "../features/feed/pages/Feed";
+import DashboardPage from "../features/dashboard/pages/Dashboard";
 import ResourcesPage from "../features/resources/pages/Vault";
 import AskPage from "../features/ask/pages/Ask";
 import QuestionDetailPage from "../features/ask/pages/QuestionDetail";
 
 // Auth Components
 import ProtectedRoute from "./ProtectedRoute";
-// import GuestRoute from "./GuestRoute";
 
 export const AppRoutes = () => {
   return (
@@ -27,19 +26,19 @@ export const AppRoutes = () => {
       <Route path="/profile-setup" element={<ProfileSetupPage />} />
 
       {/* GUEST ROUTES */}
-      {/* <Route element={<GuestRoute />}> */}
-        <Route path="/" element={<LandingPage />} />
-      {/* </Route> */}
+      <Route path="/" element={<LandingPage />} />
       
       {/* PROTECTED ROUTES */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route path="/feed" element={<FeedPage />} />          {/* Add more app features here */}
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/feed" element={<Navigate to="/dashboard" replace />} />
           <Route path="/ask" element={<AskPage />} />
           <Route path="/ask/:id" element={<QuestionDetailPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
         </Route>
       </Route>
+
       {/* CATCH ALL */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
