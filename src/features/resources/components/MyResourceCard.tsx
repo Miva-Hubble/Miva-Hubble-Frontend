@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { FileText, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import type { StudentResourceDto } from "../../../types/studentResource";
 import type { VaultTheme } from "../constants/theme";
-import { formatRelativeTime } from "../../../lib/date/formatRelativeTime";
+import { useRelativeTime } from "../hooks/useRelativeTime";
 
 interface MyResourceCardProps {
   resource: StudentResourceDto;
@@ -14,6 +14,7 @@ export default function MyResourceCard({ resource, theme, index }: MyResourceCar
   const isPending = resource.status === "PENDING_REVIEW" || resource.status === "DRAFT";
   const isApproved = resource.status === "APPROVED";
   const isRejected = resource.status === "REJECTED";
+  const relativeTime = useRelativeTime(resource.createdAt);
 
   const sizeMb = (resource.sizeBytes / (1024 * 1024)).toFixed(1);
 
@@ -112,7 +113,7 @@ export default function MyResourceCard({ resource, theme, index }: MyResourceCar
         </div>
         <div className="flex items-center gap-1">
           <Clock className="w-3.5 h-3.5 text-slate-400" />
-          <span>{formatRelativeTime(resource.createdAt)}</span>
+          <span>{relativeTime}</span>
         </div>
       </div>
     </motion.article>
