@@ -18,44 +18,42 @@ import type { ProfileSetupData } from "../types/ProfileSetup";
 // ---------------------------------------------------------------------------
 
 export const profileService = {
-    /**
-   * Persists the user's completed onboarding profile to the backend.
-   *
-   *
-   * Errors are propagated to the caller so the UI can handle the failure state
-   * (e.g. display a toast and keep the user on the current step).
+  /**
+   * TODO: Implement actual backend endpoint for username validation.
+   * Assumes a GET /api/users/check-username?username=... endpoint.
    */
-    saveProfile: async (data: ProfileSetupData) => {
-      let profilePicturePath = null;
-  
-      // Upload the image to Multer/Supabase (if the user didn't skip it)
-      if (data.profilePhoto) {
-        const formData = new FormData();
-        
-        formData.append("file", data.profilePhoto);
-  
-        const uploadRes = await apiClient.post("/api/onboarding/profile-picture", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-  
-        // Extract the Supabase public URL from the backend response.
-        profilePicturePath = uploadRes.data.profilePicturePath;
-      }
-  
-      // Send the final JSON payload to complete onboarding
-      const finalPayload = {
-        level: data.currentLevel,
-        department: data.department,
-        goals: data.goals,
-        preferredMode: data.preferredMode,
-        // Only attach the URL key if an image was actually uploaded
-        ...(profilePicturePath && { profilePicturePath }), 
-      };
-  
-      const completeRes = await apiClient.post("/api/onboarding", finalPayload);
-      
-      return completeRes.data;
-    },
-  };
+  checkUsername: async (username: string): Promise<boolean> => {
+    // return apiClient.get(`/api/users/check-username?username=${username}`).then(res => res.data.isAvailable);
+    return new Promise((resolve) => setTimeout(() => resolve(username.length > 2), 500));
+  },
+
+  /**
+   * Persists the user's completed onboarding profile to the backend.
+   */
+  saveProfile: async (data: ProfileSetupData) => {
+    // Send the final JSON payload to complete onboarding
+    // TODO: Ensure backend /api/onboarding endpoint accepts gender and username
+    const finalPayload = {
+      level: data.currentLevel,
+      department: data.department,
+      goals: data.goals,
+      preferredMode: data.preferredMode,
+      gender: data.gender,
+      username: data.username,
+    };
+
+    const completeRes = await apiClient.post("/api/onboarding", finalPayload);
+    
+    return completeRes.data;
+  },
+
+  /**
+   * TODO: Implement actual backend endpoint for profile updates.
+   * Assumes a PUT /api/profile endpoint.
+   */
+  updateProfile: async (data: { username: string; department: string }) => {
+    const res = await apiClient.put("/api/profile", data);
+    return res.data; // TODO: Return res.data
+    return new Promise((resolve) => setTimeout(() => resolve({ success: true }), 1000));
+  }
+};

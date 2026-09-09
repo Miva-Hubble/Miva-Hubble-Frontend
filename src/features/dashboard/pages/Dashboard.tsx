@@ -9,6 +9,8 @@ import { useDashboard } from "../hooks/useDashboard";
 import { useMyProgress } from "../../resources/hooks/useMyProgress";
 import { useMyStudentResources } from "../../resources/hooks/useMyStudentResources";
 import { academicWings } from "../constants/dashboardMockData";
+import { useAuth } from "../../../hooks/useAuth";
+import { useGreeting } from "../../../hooks/useGreeting";
 
 // Mirrors the backend's getLagosCalendarDate (Intl.DateTimeFormat with
 // timeZone: "Africa/Lagos") so the quest-step checklist resets on the same
@@ -28,6 +30,8 @@ export default function Dashboard() {
   const progressQuery = useMyProgress();
   const resourcesQuery = useMyStudentResources();
   const { feed } = useDashboard();
+  const { user } = useAuth();
+  const greeting = useGreeting(user?.username);
   const progress = progressQuery.progress;
 
   return (
@@ -50,7 +54,12 @@ export default function Dashboard() {
                 >
                   DIGITAL ARCHIVE
                 </span>
-                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold mt-3 sm:mt-5 leading-tight">
+                
+                <h2 className="text-xl sm:text-2xl font-bold mt-4 sm:mt-6 mb-1" style={{ color: theme.primary }}>
+                  {greeting}
+                </h2>
+                
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mt-1">
                   Every resource you need, <span style={{ color: theme.primary }}>all in one place.</span>
                 </h1>
                 <p className="mt-3 sm:mt-4 text-xs sm:text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
@@ -244,7 +253,7 @@ function GoalCard({
       }}
     >
       {/* Top Header: Rank & Streak */}
-      <div className="flex justify-between items-center mb-5">
+      <div className="flex justify-between items-center mb-5 mt-5">
         <span className="font-bold text-xs sm:text-sm flex items-center gap-2" style={{ color: theme.textPrimary }}>
           <Target className="w-4 h-4" style={{ color: theme.accent }} />
           Current rank: {progress?.rank.name ?? "Novice"}

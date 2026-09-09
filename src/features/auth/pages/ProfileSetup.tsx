@@ -5,7 +5,7 @@ import { getAskTheme } from "../../ask/constants/theme";
 import SetupHeader from "../components/SetupHeader";
 import Step1LevelDepartment from "../components/Step1LevelDepartment";
 import Step2Goals from "../components/Step2Goals";
-import Step3ProfilePhoto from "../components/Step3ProfilePhoto";
+import Step3UsernameAndGender from "../components/Step3UsernameAndGender";
 import { MAX_GOALS } from "../../../constants/profile";
 import { useTaxonomy } from "../../../hooks/useTaxonomy";
 import { profileService } from "../../../services/profileService";
@@ -50,7 +50,8 @@ const ProfileSetup = () => {
     currentLevel: "",
     goals: [],
     preferredMode: "anonymous",
-    profilePhoto: null,
+    username: "",
+    gender: "",
   });
 
   const goToStep = (step: number) => {
@@ -114,7 +115,8 @@ const ProfileSetup = () => {
         department: formData.department,
         goals: formData.goals,
         preferredMode: formData.preferredMode,
-        profilePhoto: formData.profilePhoto,
+        username: formData.username,
+        gender: formData.gender,
       });
 
       setSaveStatus("success");
@@ -178,14 +180,17 @@ const ProfileSetup = () => {
               )}
 
               {currentStep === 3 && (
-                <Step3ProfilePhoto
+                <Step3UsernameAndGender
                   theme={theme}
-                  profilePhoto={formData.profilePhoto ?? null}
-                  onPhotoChange={(file) =>
-                    setFormData((prev) => ({ ...prev, profilePhoto: file ?? null }))
+                  username={formData.username}
+                  gender={formData.gender}
+                  onUsernameChange={(val) =>
+                    setFormData((prev) => ({ ...prev, username: val }))
+                  }
+                  onGenderChange={(val) =>
+                    setFormData((prev) => ({ ...prev, gender: val }))
                   }
                   onFinish={handleComplete}
-                  onSkip={handleComplete}
                   isSaving={isSaving}
                   errorMessage={errorMessage}
                   onRetry={handleComplete}

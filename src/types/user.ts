@@ -11,8 +11,8 @@ export interface User {
   email: string;
   username: string;
   name: string;
+  gender: 'male' | 'female' | 'other';
   picture: string | null;
-  profilePicturePath: string | null;
   email_verified: boolean;
   last_login_with: string | null;
   createdAt: string;
