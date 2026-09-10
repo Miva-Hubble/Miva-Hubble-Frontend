@@ -17,10 +17,7 @@ import { useGreeting } from "../../../hooks/useGreeting";
 // day boundary as the daily-goal ring and streak it sits beside — a
 // resource uploaded/submitted "today" in Lagos must read as today here too,
 // regardless of the browser's own timezone.
-function isLagosToday(isoDate: string): boolean {
-  const lagosDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(d);
-  return lagosDay(new Date(isoDate)) === lagosDay(new Date());
-}
+
 
 // Mirrors the backend's getLagosCalendarDate (Intl.DateTimeFormat with
 // timeZone: "Africa/Lagos") so the quest-step checklist resets on the same
@@ -41,7 +38,7 @@ export default function Dashboard() {
   const resourcesQuery = useMyStudentResources();
   const { feed } = useDashboard();
   const { user } = useAuth();
-  const greeting = useGreeting(user?.username);
+  const greeting = useGreeting(user?.username ?? undefined);
   const progress = progressQuery.progress;
 
   return (
@@ -58,17 +55,15 @@ export default function Dashboard() {
             />
             <div className="relative z-10 flex flex-col lg:flex-row justify-between gap-6 sm:gap-8 lg:gap-10">
               <div className="max-w-md">
-                <h2 className="text-xl sm:text-2xl font-bold mt-4 sm:mt-6 mb-1" style={{ color: theme.primary }}>
+                <h2 className="text-xl sm:text-2xl font-bold mt-6 sm:mt-10 mb-2" style={{ color: theme.primary }}>
                   {greeting}
                 </h2>
 
-                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mt-1">
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mt-2">
                   Every resource you need, <span style={{ color: theme.primary }}>all in one place.</span>
                 </h1>
-                <p className="mt-3 sm:mt-4 text-xs sm:text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
-                  An ambient, peer-fuelled knowledge ecosystem. Tap into decentralized verified lecture notes, exam breakdowns, and high-yield masterclasses while leveling up your scholar rank.
-                </p>
-                <div className="flex flex-wrap gap-2.5 sm:gap-3 mt-5 sm:mt-6">
+
+                <div className="flex flex-wrap gap-2.5 sm:gap-3 mt-8 sm:mt-10">
                   <motion.div whileHover={{ y: -2, scale: 1.03 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 420, damping: 22 }}>
                     <Link
                       to="/resources"

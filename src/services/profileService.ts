@@ -19,20 +19,24 @@ import type { ProfileSetupData } from "../types/ProfileSetup";
 
 export const profileService = {
   /**
-   * TODO: Implement actual backend endpoint for username validation.
-   * Assumes a GET /api/users/check-username?username=... endpoint.
+   * GET /api/users/check-username (3.1) — auth required. Returns whether
+   * the given username is available, excluding the requester's own current
+   * username from the "taken" check server-side.
    */
   checkUsername: async (username: string): Promise<boolean> => {
-    // return apiClient.get(`/api/users/check-username?username=${username}`).then(res => res.data.isAvailable);
-    return new Promise((resolve) => setTimeout(() => resolve(username.length > 2), 500));
+    const res = await apiClient.get("/api/users/check-username", {
+      params: { username },
+    });
+    return res.data.available;
   },
 
   /**
    * Persists the user's completed onboarding profile to the backend.
    */
   saveProfile: async (data: ProfileSetupData) => {
-    // Send the final JSON payload to complete onboarding
-    // TODO: Ensure backend /api/onboarding endpoint accepts gender and username
+    // Send the final JSON payload to complete onboarding.
+    // Confirmed 2026-09-10: backend's onboardingSchema (onboarding.schema.ts)
+    // accepts gender/username and completeOnboarding persists both — no gap here.
     const finalPayload = {
       level: data.currentLevel,
       department: data.department,
@@ -48,12 +52,36 @@ export const profileService = {
   },
 
   /**
-   * TODO: Implement actual backend endpoint for profile updates.
-   * Assumes a PUT /api/profile endpoint.
+   * TODO: No backend endpoint exists yet for this (see chat note — flagged,
+   * not fabricated). Blocks /claim-identity (Phase 8) from actually
+   * persisting for legacy accounts until the backend adds
+   * PATCH /api/user/identity (or equivalent).
    */
-  updateProfile: async (data: { username: string; department: string }) => {
-    const res = await apiClient.put("/api/profile", data);
-    return res.data; // TODO: Return res.data
-    return new Promise((resolve) => setTimeout(() => resolve({ success: true }), 1000));
-  }
+  claimIdentity: async (data: { username: string; gender: string }) => {
+    const res = await apiClient.patch("/api/user/identity", data);
+    return res.data;
+  },
+
+  /**
+   * PATCH /api/user/username (3.2) — auth required. Changes the user's
+   * username post-onboarding.
+   */
+  updateUsername: async (username: string) => {
+    const res = await apiClient.patch("/api/user/username", { username });
+    return res.data;
+  },
+
+  /**
+   * PATCH /api/user/department — auth required. Changes the user's
+   * department post-onboarding. Server enforces a 60-day cooldown
+   * (departmentChangedAt) and responds 409 with a human-readable `message`
+   * if the cooldown is still active — see getDepartmentCooldownStatus
+   * (src/lib/date/departmentCooldown.ts) for the client-side pre-check that
+   * avoids hitting this endpoint needlessly, though the backend is always
+   * the real enforcement point regardless of what the client checked.
+   */
+  updateDepartment: async (department: string) => {
+    const res = await apiClient.patch("/api/user/department", { department });
+    return res.data;
+  },
 };

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../hooks/useAuth";
 import { AnimatePresence, motion } from "framer-motion";
 import { getAskTheme } from "../../ask/constants/theme";
 import SetupHeader from "../components/SetupHeader";
@@ -37,6 +38,7 @@ const stepVariants = {
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const theme = getAskTheme(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [maxStepReached, setMaxStepReached] = useState(1);
@@ -120,6 +122,14 @@ const ProfileSetup = () => {
       });
 
       setSaveStatus("success");
+      // Refresh the cached user object BEFORE navigating — ProtectedRoute and
+      // OnboardingRoute both gate on user.isOnboarded from useAuth's context,
+      // which was last fetched before onboarding completed. Without this,
+      // navigate("/dashboard") hits ProtectedRoute with a stale
+      // isOnboarded: false, bounces to /profile-setup, and OnboardingRoute
+      // (reading the same stale user) renders this page again instead of
+      // redirecting onward — the user never actually leaves onboarding.
+      await refreshUser();
       navigate("/dashboard");
     } catch (error) {
       logTechnicalError("[ProfileSetup] Failed to save profile:", error);

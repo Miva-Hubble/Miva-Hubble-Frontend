@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth"; 
+import { useAuth } from "../hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 const ProtectedRoute = () => {
@@ -16,9 +16,24 @@ const ProtectedRoute = () => {
       </div>
     );
   }
-  
-  // If no user, kick them back to the front door
-  return user ? <Outlet /> : <Navigate to="/" replace />;
+
+  // No session at all -> front door.
+  if (!user) return <Navigate to="/" replace />;
+
+  // Authenticated but never finished onboarding -> back to profile-setup,
+  // not the dashboard. This is the check that was missing: previously any
+  // authenticated user was let straight through regardless of onboarding
+  // state, which is how accounts reach /dashboard and stay there with
+  // onboarding: null in the DB forever.
+  if (!user.isOnboarded) return <Navigate to="/profile-setup" replace />;
+
+  // Onboarded, but a legacy pre-migration account never claimed a
+  // username/gender (Phase 2.2's transaction guarantees new users can't
+  // land here) -> finish identity claim before anything else.
+  const needsIdentityClaim = user.isOnboarded && (!user.username || !user.gender);
+  if (needsIdentityClaim) return <Navigate to="/claim-identity" replace />;
+
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

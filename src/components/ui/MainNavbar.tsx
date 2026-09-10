@@ -3,13 +3,13 @@ import {
   BookOpen, Moon, Sun, UserCircle, Bell, 
   Home, Shield, MessageSquare, GraduationCap, Trophy 
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { AskTheme } from "../../features/ask/constants/theme";
 import EditProfileModal from "../../features/profile/components/EditProfileModal";
 import { useAuth } from "../../hooks/useAuth";
 import { useMyProgress } from "../../features/resources/hooks/useMyProgress";
-import { getAvatarUrl } from "../../lib/avatar";
+import { getAvatarAsset } from "../../lib/avatar/getAvatarAsset";
 
 type AskNavbarProps = {
   NavTheme: AskTheme;
@@ -27,11 +27,12 @@ const NAV_LINKS = [
 
 export default function MainNavbar({ NavTheme, isDarkMode, onToggleTheme }: AskNavbarProps) {
   const location = useLocation();
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { progress } = useMyProgress();
   const rank = progress?.rank?.name || 'Novice';
-  const avatarUrl = getAvatarUrl(user?.gender, rank);
+  const avatarUrl = getAvatarAsset(user?.gender, rank);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   return (
     <>
@@ -120,7 +121,7 @@ export default function MainNavbar({ NavTheme, isDarkMode, onToggleTheme }: AskN
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.92 }}
-                onClick={() => setIsEditProfileOpen(true)}
+                onClick={() => navigate("/profile")}
                 className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center cursor-pointer overflow-hidden"
                 style={{ backgroundColor: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.07)" }}
                 aria-label="Profile"
