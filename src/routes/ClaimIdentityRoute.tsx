@@ -2,12 +2,20 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
-const GuestRoute = () => {
+/**
+ * Gates /claim-identity:
+ *   - Not signed in                              -> "/"
+ *   - Signed in, not onboarded                    -> "/profile-setup"
+ *   - Signed in, onboarded, identity complete      -> "/dashboard"
+ *   - Signed in, onboarded, identity incomplete    -> render the claim screen
+ *
+ * This state should only ever be reached by legacy pre-migration accounts —
+ * the Phase 2.2 transaction guarantees new users can never land here with a
+ * partial identity. Mirrors OnboardingRoute.tsx's structure.
+ */
+const ClaimIdentityRoute = () => {
   const { user, isLoading } = useAuth();
 
-  // Same loading shell as ProtectedRoute.tsx (spinner + heading + subtext on
-  // the same dark background) so the auth check looks identical no matter
-  // which guard the user happens to hit first.
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0b1120] flex flex-col items-center justify-center p-6 text-center">
@@ -21,21 +29,13 @@ const GuestRoute = () => {
     );
   }
 
-  // No session -> show the landing/signup page.
-  if (!user) return <Outlet />;
-
-  // Signed in but never finished onboarding -> back to profile-setup, not
-  // the dashboard. Without this check, a user who abandoned onboarding
-  // could return to "/" and get bounced straight into /dashboard forever,
-  // never completing onboarding.
+  if (!user) return <Navigate to="/" replace />;
   if (!user.isOnboarded) return <Navigate to="/profile-setup" replace />;
 
-  // Same legacy-account gap as ProtectedRoute.tsx: don't bounce a
-  // signed-in-but-unclaimed user straight to /dashboard.
   const needsIdentityClaim = user.isOnboarded && (!user.username || !user.gender);
-  if (needsIdentityClaim) return <Navigate to="/claim-identity" replace />;
+  if (!needsIdentityClaim) return <Navigate to="/dashboard" replace />;
 
-  return <Navigate to="/dashboard" replace />;
+  return <Outlet />;
 };
 
-export default GuestRoute;
+export default ClaimIdentityRoute;

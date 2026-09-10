@@ -2,10 +2,16 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
+import { useToast } from "../../../components/feedback/ToastProvider";
 import { useMyProgress } from "../../resources/hooks/useMyProgress";
-import { getAvatarUrl } from "../../../lib/avatar";
+import { getAvatarAsset } from "../../../lib/avatar/getAvatarAsset";
 import { useTaxonomy } from "../../../hooks/useTaxonomy";
 import { profileService } from "../../../services/profileService";
+import { getDepartmentCooldownStatus } from "../../../lib/date/departmentCooldown";
+import {
+  getUserFriendlyError,
+  logTechnicalError,
+} from "../../../lib/errors/getUserFriendlyError";
 import type { AskTheme } from "../../ask/constants/theme";
 
 type EditProfileModalProps = {
@@ -16,35 +22,81 @@ type EditProfileModalProps = {
 
 export default function EditProfileModal({ open, onClose, theme }: EditProfileModalProps) {
   const { user, refreshUser } = useAuth();
+  const { showToast } = useToast();
   const { progress } = useMyProgress();
   const { departments, isLoading: isTaxonomyLoading } = useTaxonomy();
-  
-  const [username, setUsername] = useState(user?.username || "");
-  const [department, setDepartment] = useState(user?.onboarding?.department || "");
+
+  const originalUsername = user?.username || "";
+  const originalDepartment = user?.onboarding?.department || "";
+
+  const [username, setUsername] = useState(originalUsername);
+  const [department, setDepartment] = useState(originalDepartment);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDepartmentWarning, setShowDepartmentWarning] = useState(false);
 
   const rank = progress?.rank?.name || "Novice";
-  const avatarUrl = getAvatarUrl(user?.gender, rank);
+  const avatarUrl = getAvatarAsset(user?.gender, rank);
+
+  // Client-side pre-check only — see departmentCooldown.ts. The backend
+  // (PATCH /api/user/department) is the real enforcement point regardless
+  // of what this says.
+  const cooldown = getDepartmentCooldownStatus(user?.onboarding?.departmentChangedAt);
+
+  const handleDepartmentChange = (value: string) => {
+    if (cooldown.isLocked && value !== originalDepartment) {
+      showToast({
+        variant: "warning",
+        message: `Department changes are only allowed once every 60 days. You can change it again in ${cooldown.daysRemaining} day${cooldown.daysRemaining === 1 ? "" : "s"}.`,
+      });
+      return;
+    }
+
+    setDepartment(value);
+    setShowDepartmentWarning(false);
+  };
 
   const handleSave = async () => {
-    if (department !== user?.onboarding?.department && !showDepartmentWarning) {
+    const usernameChanged = username !== originalUsername;
+    const departmentChanged = department !== originalDepartment;
+
+    if (departmentChanged && cooldown.isLocked) {
+      // Defensive backstop — handleDepartmentChange already blocks this,
+      // but never trust that a stale `department` state couldn't reach here.
+      showToast({
+        variant: "warning",
+        message: `Department changes are only allowed once every 60 days. You can change it again in ${cooldown.daysRemaining} day${cooldown.daysRemaining === 1 ? "" : "s"}.`,
+      });
+      return;
+    }
+
+    if (departmentChanged && !showDepartmentWarning) {
       setShowDepartmentWarning(true);
       return;
     }
 
     setIsSaving(true);
     setError(null);
+
     try {
-      await profileService.updateProfile({
-        username,
-        department,
-      });
+      if (usernameChanged) {
+        await profileService.updateUsername(username);
+      }
+
+      if (departmentChanged) {
+        await profileService.updateDepartment(department);
+      }
+
       await refreshUser();
+
+      if (usernameChanged || departmentChanged) {
+        showToast({ variant: "success", message: "Profile updated." });
+      }
+
       onClose();
-    } catch (err: any) {
-      setError(err?.message || "Failed to update profile. Please try again.");
+    } catch (err) {
+      logTechnicalError("[EditProfileModal] Failed to save profile:", err);
+      setError(getUserFriendlyError(err));
     } finally {
       setIsSaving(false);
       setShowDepartmentWarning(false);
@@ -107,10 +159,7 @@ export default function EditProfileModal({ open, onClose, theme }: EditProfileMo
                 <label className="block text-sm font-semibold mb-1 opacity-80">Department</label>
                 <select
                   value={department}
-                  onChange={(e) => {
-                    setDepartment(e.target.value);
-                    setShowDepartmentWarning(false);
-                  }}
+                  onChange={(e) => handleDepartmentChange(e.target.value)}
                   disabled={isTaxonomyLoading}
                   className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10 focus:border-white/30 focus:outline-none transition-colors appearance-none"
                 >
@@ -119,13 +168,18 @@ export default function EditProfileModal({ open, onClose, theme }: EditProfileMo
                     <option key={dep} value={dep}>{dep}</option>
                   ))}
                 </select>
+                {cooldown.isLocked && (
+                  <p className="text-[10px] mt-1 opacity-50">
+                    You can change your department again in {cooldown.daysRemaining} day{cooldown.daysRemaining === 1 ? "" : "s"}.
+                  </p>
+                )}
               </div>
 
               {showDepartmentWarning && (
                 <div className="mt-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 flex gap-3">
                   <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0" />
                   <p className="text-xs text-orange-200">
-                    <strong>Are you sure?</strong> You will not be able to change your department again for the next 2 months.
+                    <strong>Are you sure?</strong> You will not be able to change your department again for the next 60 days.
                   </p>
                 </div>
               )}

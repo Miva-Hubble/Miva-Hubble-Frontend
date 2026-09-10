@@ -150,8 +150,8 @@ const Step3UsernameAndGender = ({
             <label className="block text-sm font-semibold mb-2" style={{ color: theme.textPrimary }}>
               Gender
             </label>
-            <div className="grid grid-cols-3 gap-3">
-              {(["male", "female", "other"] as const).map((g) => (
+            <div className="grid grid-cols-2 gap-3">
+              {(["male", "female"] as const).map((g) => (
                 <button
                   key={g}
                   type="button"
