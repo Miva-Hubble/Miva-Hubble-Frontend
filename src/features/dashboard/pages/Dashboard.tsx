@@ -9,6 +9,18 @@ import { useDashboard } from "../hooks/useDashboard";
 import { useMyProgress } from "../../resources/hooks/useMyProgress";
 import { useMyStudentResources } from "../../resources/hooks/useMyStudentResources";
 import { academicWings } from "../constants/dashboardMockData";
+import { useAuth } from "../../../hooks/useAuth";
+import { useGreeting } from "../../../hooks/useGreeting";
+
+// Mirrors the backend's getLagosCalendarDate (Intl.DateTimeFormat with
+// timeZone: "Africa/Lagos") so the quest-step checklist resets on the same
+// day boundary as the daily-goal ring and streak it sits beside — a
+// resource uploaded/submitted "today" in Lagos must read as today here too,
+// regardless of the browser's own timezone.
+function isLagosToday(isoDate: string): boolean {
+  const lagosDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(d);
+  return lagosDay(new Date(isoDate)) === lagosDay(new Date());
+}
 
 // Mirrors the backend's getLagosCalendarDate (Intl.DateTimeFormat with
 // timeZone: "Africa/Lagos") so the quest-step checklist resets on the same
@@ -28,6 +40,8 @@ export default function Dashboard() {
   const progressQuery = useMyProgress();
   const resourcesQuery = useMyStudentResources();
   const { feed } = useDashboard();
+  const { user } = useAuth();
+  const greeting = useGreeting(user?.username);
   const progress = progressQuery.progress;
 
   return (
@@ -44,13 +58,11 @@ export default function Dashboard() {
             />
             <div className="relative z-10 flex flex-col lg:flex-row justify-between gap-6 sm:gap-8 lg:gap-10">
               <div className="max-w-md">
-                <span
-                  className="text-[11px] sm:text-xs font-bold px-3 py-1 rounded-full inline-block tracking-wider"
-                  style={{ backgroundColor: theme.cardBg, color: theme.textSecondary }}
-                >
-                  DIGITAL ARCHIVE
-                </span>
-                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold mt-3 sm:mt-5 leading-tight">
+                <h2 className="text-xl sm:text-2xl font-bold mt-4 sm:mt-6 mb-1" style={{ color: theme.primary }}>
+                  {greeting}
+                </h2>
+
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mt-1">
                   Every resource you need, <span style={{ color: theme.primary }}>all in one place.</span>
                 </h1>
                 <p className="mt-3 sm:mt-4 text-xs sm:text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
@@ -91,90 +103,90 @@ export default function Dashboard() {
         </section>
 
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base sm:text-lg font-bold">✽ Browse by Academic Wings</h2>
-            <span className="text-[10px]" style={{ color: theme.accent }}>0 studying live</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
-            {academicWings.map((wing) => (
-              <div key={wing.title} className="rounded-2xl p-4 flex items-center gap-3" style={{ backgroundColor: theme.cardBg }}>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style={{ backgroundColor: `${theme.primary}22`, color: theme.primary }}>{wing.icon}</span>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold truncate">{wing.title}</p>
-                  <p className="text-[9px] mt-1" style={{ color: theme.accent }}>• {wing.studying}</p>
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base sm:text-lg font-bold">✽ Browse by Academic Wings</h2>
+              <span className="text-[10px]" style={{ color: theme.accent }}>0 studying live</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
+              {academicWings.map((wing) => (
+                <div key={wing.title} className="rounded-2xl p-4 flex items-center gap-3" style={{ backgroundColor: theme.cardBg }}>
+                  <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style={{ backgroundColor: `${theme.primary}22`, color: theme.primary }}>{wing.icon}</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold truncate">{wing.title}</p>
+                    <p className="text-[9px] mt-1" style={{ color: theme.accent }}>• {wing.studying}</p>
+                  </div>
+                  <span className="ml-auto" style={{ color: theme.textMuted }}>›</span>
                 </div>
-                <span className="ml-auto" style={{ color: theme.textMuted }}>›</span>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
 
-        <section>
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: theme.primary }} />
-            Trending This Week
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="lg:col-span-2 space-y-3">
-              {feed?.trending?.items?.length ? (
-                feed.trending.items.slice(0, 3).map((item) => (
-                  <article key={item.id} className="rounded-2xl p-4 sm:p-5" style={{ backgroundColor: theme.surface }}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <span className="text-[9px] font-bold px-2 py-1 rounded" style={{ backgroundColor: `${theme.primary}1f`, color: theme.primary }}>VERIFIED ARCHIVE</span>
-                        <h3 className="font-bold mt-2.5 text-sm sm:text-base">{item.title}</h3>
-                        <p className="text-xs leading-relaxed mt-2" style={{ color: theme.textSecondary }}>{item.context}</p>
-                        <div className="mt-3 sm:mt-4 flex items-center gap-3 text-[10px]" style={{ color: theme.textMuted }}>
-                          <span style={{ color: theme.accent }}>★ {item.rating ?? 0}</span>
-                          <span>{(item.downloads ?? 0).toLocaleString()} downloads</span>
+          <section>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: theme.primary }} />
+              Trending This Week
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              <div className="lg:col-span-2 space-y-3">
+                {feed?.trending?.items?.length ? (
+                  feed.trending.items.slice(0, 3).map((item) => (
+                    <article key={item.id} className="rounded-2xl p-4 sm:p-5" style={{ backgroundColor: theme.surface }}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <span className="text-[9px] font-bold px-2 py-1 rounded" style={{ backgroundColor: `${theme.primary}1f`, color: theme.primary }}>VERIFIED ARCHIVE</span>
+                          <h3 className="font-bold mt-2.5 text-sm sm:text-base">{item.title}</h3>
+                          <p className="text-xs leading-relaxed mt-2" style={{ color: theme.textSecondary }}>{item.context}</p>
+                          <div className="mt-3 sm:mt-4 flex items-center gap-3 text-[10px]" style={{ color: theme.textMuted }}>
+                            <span style={{ color: theme.accent }}>★ {item.rating ?? 0}</span>
+                            <span>{(item.downloads ?? 0).toLocaleString()} downloads</span>
+                          </div>
+                        </div>
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl shrink-0" style={{ background: `radial-gradient(circle at 30% 30%, ${theme.primary}88, ${theme.cardBg})` }} />
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="rounded-2xl p-6 sm:p-8 text-center text-xs sm:text-sm" style={{ backgroundColor: theme.surface, color: theme.textSecondary }}>
+                    No trending resources yet.
+                  </div>
+                )}
+              </div>
+              <aside className="rounded-2xl p-4 sm:p-5 h-fit" style={{ backgroundColor: theme.surface }}>
+                <h3 className="font-bold text-xs sm:text-sm">♜ Top Masters</h3>
+                {feed?.topMasters?.items?.length ? (
+                  <div className="mt-4 space-y-3">
+                    {feed.topMasters.items.slice(0, 3).map((student, index) => (
+                      <div key={student.id} className="flex items-center gap-3">
+                        <span className="text-xs font-bold" style={{ color: index === 0 ? "#fbbf24" : theme.textMuted }}>{index + 1}</span>
+                        <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: theme.cardBg, color: theme.primary }}>{student.name.charAt(0)}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold truncate">{student.name}</p>
+                          <p className="text-[10px]" style={{ color: theme.textMuted }}>{student.xp.toLocaleString()} XP</p>
                         </div>
                       </div>
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl shrink-0" style={{ background: `radial-gradient(circle at 30% 30%, ${theme.primary}88, ${theme.cardBg})` }} />
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <div className="rounded-2xl p-6 sm:p-8 text-center text-xs sm:text-sm" style={{ backgroundColor: theme.surface, color: theme.textSecondary }}>
-                  No trending resources yet.
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs mt-4" style={{ color: theme.textMuted }}>No ranked students yet.</p>
+                )}
+              </aside>
             </div>
-            <aside className="rounded-2xl p-4 sm:p-5 h-fit" style={{ backgroundColor: theme.surface }}>
-              <h3 className="font-bold text-xs sm:text-sm">♜ Top Masters</h3>
-              {feed?.topMasters?.items?.length ? (
-                <div className="mt-4 space-y-3">
-                  {feed.topMasters.items.slice(0, 3).map((student, index) => (
-                    <div key={student.id} className="flex items-center gap-3">
-                      <span className="text-xs font-bold" style={{ color: index === 0 ? "#fbbf24" : theme.textMuted }}>{index + 1}</span>
-                      <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: theme.cardBg, color: theme.primary }}>{student.name.charAt(0)}</span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold truncate">{student.name}</p>
-                        <p className="text-[10px]" style={{ color: theme.textMuted }}>{student.xp.toLocaleString()} XP</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs mt-4" style={{ color: theme.textMuted }}>No ranked students yet.</p>
-              )}
-            </aside>
-          </div>
-        </section>
+          </section>
 
-        <section className="rounded-2xl sm:rounded-[28px] p-5 sm:p-7" style={{ backgroundColor: theme.surface }}>
-          <div className="flex flex-wrap justify-between gap-3">
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold">⌁ Live Campus Community Impact</h2>
-              <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>Real-time collaboration activity across our global network of verified academic institutions.</p>
+          <section className="rounded-2xl sm:rounded-[28px] p-5 sm:p-7" style={{ backgroundColor: theme.surface }}>
+            <div className="flex flex-wrap justify-between gap-3">
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold">⌁ Live Campus Community Impact</h2>
+                <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>Real-time collaboration activity across our global network of verified academic institutions.</p>
+              </div>
+              <span className="rounded-full px-3 py-1 text-[10px] h-fit" style={{ backgroundColor: theme.cardBg, color: theme.textSecondary }}>Live campus pulse · 2m ago</span>
             </div>
-            <span className="rounded-full px-3 py-1 text-[10px] h-fit" style={{ backgroundColor: theme.cardBg, color: theme.textSecondary }}>Live campus pulse · 2m ago</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-8">
-            <Metric value={String(feed?.communityImpact?.activeLearners ?? 0)} label="ACTIVE SCHOLARS" color={theme.primary} />
-            <Metric value={String(feed?.communityImpact?.resources ?? 0)} label="VERIFIED RESOURCES" color={theme.accent} />
-          </div>
-        </section>
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-8">
+              <Metric value={String(feed?.communityImpact?.activeLearners ?? 0)} label="ACTIVE SCHOLARS" color={theme.primary} />
+              <Metric value={String(feed?.communityImpact?.resources ?? 0)} label="VERIFIED RESOURCES" color={theme.accent} />
+            </div>
+          </section>
         </div>
         <UploadResourceModal open={showUploadModal} onClose={() => setShowUploadModal(false)} theme={vaultTheme} />
       </main>
@@ -244,7 +256,7 @@ function GoalCard({
       }}
     >
       {/* Top Header: Rank & Streak */}
-      <div className="flex justify-between items-center mb-5">
+      <div className="flex justify-between items-center mb-5 mt-5">
         <span className="font-bold text-xs sm:text-sm flex items-center gap-2" style={{ color: theme.textPrimary }}>
           <Target className="w-4 h-4" style={{ color: theme.accent }} />
           Current rank: {progress?.rank.name ?? "Novice"}
