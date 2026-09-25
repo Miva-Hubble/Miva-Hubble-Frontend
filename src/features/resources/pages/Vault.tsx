@@ -1,591 +1,506 @@
 import { motion } from "motion/react";
-import { useState } from "react";
-import { useNavigate, useOutletContext } from "react-router";
-import MOCK_RESOURCES from "../constants/mock_resources";
+import { useMemo, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import UploadResourceModal from "../components/UploadResourceModal";
+import { VaultResourceCard } from "../components/VaultResourceCard";
+import MyResourceCard from "../components/MyResourceCard";
 import { getVaultTheme } from "../constants/theme";
-import { 
-  Library,
-  Home,
-  UserCircle,
-  Sparkles,
-  GraduationCap,
-  FileText,
-  BookMarked,
-  Star,
-  Filter,
+import { FILE_FORMATS } from "../../../types/resource";
+import { useTaxonomy } from "../../../hooks/useTaxonomy";
+import { useVaultResources } from "../hooks/useVaultResources";
+import { useMyStudentResources } from "../hooks/useMyStudentResources";
+import { getUserFriendlyError, logTechnicalError } from "../../../lib/errors/getUserFriendlyError";
+import {
   ChevronDown,
-  BookOpen,
-  FolderOpen,
-  Clock,
-  ThumbsUp,
-  MessageCircle,
-  Eye,
-  Download,
-  FileCode,
-  File,
   Search,
-  Upload
+  Heart,
+  History,
+  Inbox,
+  AlertTriangle,
+  RotateCw,
+  Upload,
 } from "lucide-react";
-import { ImageWithFallback } from "../components/ImageWithFallback";
+
+const FILTER_TABS = ["All Resources", "My Resources"];
 
 export default function Vault() {
-  const navigate = useNavigate();
   const { isDarkMode } = useOutletContext<{ isDarkMode: boolean }>();
-  const [activeNav, setActiveNav] = useState("vault");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLevel, setSelectedLevel] = useState("All Levels");
-  const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
-  const [selectedCategory, setSelectedCategory] = useState("All Categories");
+  const [selectedLevel, setSelectedLevel] = useState("All");
+  const [selectedDepartment, setSelectedDepartment] = useState("All");
+  const [selectedFileType, setSelectedFileType] = useState("All");
+  const [activeFilterTab, setActiveFilterTab] = useState("All Resources");
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const theme = getVaultTheme(isDarkMode);
-    
-  const getFileIcon = (fileType: string) => {
-    switch (fileType.toUpperCase()) {
-      case "PDF":
-        return <FileText className="w-5 h-5" />;
-      case "DOCX":
-      case "DOC":
-        return <File className="w-5 h-5" />
-      case "CODE":
-        return <FileCode className="w-5 h-5" />
-      default:
-        return <FileText className="w-5 h-5" />
+  const { departments, levels, isLoading: taxonomyLoading } = useTaxonomy();
+
+  // GET /api/vault — unified admin-Book + approved-StudentResource feed,
+  // already server-filtered to this student's own level/department.
+  const { resources, isLoading, isError, error, refetch, isRefetching } = useVaultResources();
+
+  // GET /api/student-resources/mine — this student's own submissions in
+  // every status. Ownership-based, not eligibility-filtered, which is why
+  // it's a separate hook/request rather than a filter on top of the feed
+  // above (a DRAFT/REJECTED resource never appears in /api/vault at all).
+  const {
+    resources: myStudentResources,
+    isLoading: myResourcesLoading,
+    isError: myResourcesError,
+    refetch: refetchMyResources,
+  } = useMyStudentResources();
+
+  if (isError) {
+    logTechnicalError("[Vault]", error);
+  }
+
+  const isMyResourcesTab = activeFilterTab === "My Resources";
+
+  const filteredResources = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return resources.filter((resource) => {
+      if (selectedLevel !== "All" && resource.level !== selectedLevel) return false;
+      if (selectedDepartment !== "All" && resource.department !== selectedDepartment) return false;
+      if (selectedFileType !== "All" && resource.fileFormat !== selectedFileType) return false;
+      if (query.length > 0) {
+        const haystack = `${resource.title} ${resource.courseCode ?? ""} ${resource.courseTitle ?? ""} ${resource.description ?? ""}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
       }
-    };
+
+      return true;
+    });
+  }, [resources, selectedLevel, selectedDepartment, selectedFileType, searchQuery]);
+
+  const filteredMyResources = useMemo(() => {
+    if (!isMyResourcesTab) return [];
+    const query = searchQuery.trim().toLowerCase();
+    return myStudentResources.filter((item) => {
+      if (selectedLevel !== "All" && item.level !== selectedLevel) return false;
+      if (selectedDepartment !== "All" && item.department !== selectedDepartment) return false;
+      if (query.length > 0) {
+        const haystack = `${item.title} ${item.courseTitle} ${item.department}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    });
+  }, [isMyResourcesTab, myStudentResources, searchQuery, selectedLevel, selectedDepartment]);
+
+  const hasActiveFilters =
+    selectedLevel !== "All" ||
+    selectedDepartment !== "All" ||
+    selectedFileType !== "All" ||
+    searchQuery.trim().length > 0;
+
+  const clearFilters = () => {
+    setSelectedLevel("All");
+    setSelectedDepartment("All");
+    setSelectedFileType("All");
+    setActiveFilterTab("All Resources");
+    setSearchQuery("");
+  };
+
+  const isEmpty = !isLoading && !isError && resources.length === 0;
+  const noFilterMatches = !isMyResourcesTab && !isLoading && !isError && !isEmpty && filteredResources.length === 0;
 
   return (
     <div
-      className="min-h-screen"
+      className="pb-16 font-sans transition-colors duration-300"
       style={{
-        fontFamily: "Arimo, sans-serif",
         backgroundColor: theme.bg,
         color: theme.textPrimary,
       }}
     >
-    <div className="flex w-full max-w-7xl mx-auto">
-      {/* Sidebar */}
-      <motion.aside
-        initial={{ opacity: 0, x: -20}}
-        animate={{ opacity: 1, x: 0}}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="hidden lg:block w-72 min-h-screen p-4 sticky top-20 h-fit"
-      >
-      
-        {/* Navigation */}
-        <nav className="space-y-2 mb-6">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              setActiveNav("feed");
-              navigate("../../feed/pages/Feed")
-            }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
-            style={{
-              backgroundColor: activeNav === "feed" ? theme.primary + "20" : "transparent",
-              color: activeNav === "feed" ? theme.primary : theme.textSecondary,
-            }}
-          >
-            <Home className="w-5 h-5" />
-            <span className="font-medium">Home</span>
-          </motion.button>
-
-          <motion.button 
-            whileHover={{ scale: 1.02, x: 5 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              setActiveNav("vault");
-              navigate("/resources");
-            }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
-            style={{
-              backgroundColor: activeNav === "vault" ? theme.primary : "transparent",
-              color: activeNav === "vault" ? "#FFFFFF" : theme.textPrimary, 
-            }}
-          >
-            <Library className="w-5 h-5" />
-            <span className="font-semibold">Resource Vault</span>
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.02, x: 5}}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              setActiveNav("me");
-              navigate("/profile");
-            }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
-            style={{
-              backgroundColor: activeNav === "me" ? theme.primary : "transparent",
-              color: activeNav === "me" ? "#FFFFFF" : theme.textPrimary,
-            }}
-          >
-            <UserCircle className="w-5 h-5" />
-            <span className="font-semibold">My Profile</span>
-          </motion.button>
-        </nav>  
-
-        {/* Recommended for You Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="rounded-2xl p-4 border mb-4"
-          style={{
-            backgroundColor: theme.cardBg,
-            borderColor: theme.border,
-          }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5" style={{ color: theme.primary }} />
-            <h3 className="font-bold" style={{ color: theme.textPrimary }}>
-              Recommended for You
-            </h3>
-          </div>
-          <div className="space-y-3">
-            {/* User Context */}
-            <div 
-              className="p-3 rounded-xl"
-              style={{
-              backgroundColor: theme.accentBg,
-              }}  
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <GraduationCap className="w-4 h-4" style={{ color: theme.accent}} />
-                <span className="text-xs font-semibold" style={{ color: theme.textSecondary}}>
-                  Based on your profile
-                </span>
-              </div>
-              <p className="text-sm font-bold" style={{color: theme.textPrimary }}>
-                Computer Science • Level 300
+      <div className="w-full">
+        {/* Header Section */}
+        <div className="pt-2 pb-5 sm:pt-4 sm:pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3 sm:mb-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold mb-1 tracking-tight" style={{ color: theme.textPrimary }}>
+                The Vault
+              </h1>
+              <p className="text-xs sm:text-sm max-w-2xl text-slate-400">
+                Access thousands of verified study resources, lecture notes, and practice exams
+                curated by the community for academic excellence.
               </p>
-          </div>
-
-          {/* Popular in Your Course */}
-          <div>
-            <p className="text-xs font-semibold mb-2" style={{ color: theme.textMuted }} >
-              POPULAR IN YOUR COURSES
-            </p>
-            <div className="space-y-2">
-              <motion.button
-                whileHover={{ scale: 1.02, x: 5 }}
-                className="w-full text-left p-3 rounded-xl transition-all duration-200"
-                style={{
-                  backgroundColor: theme.accentBg,
-                }}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <FileText className="w-4 h-4" style={{ color: theme.accent }} />
-                  <span className="text-sm font-semibold" style={{ color: theme.textPrimary }}>
-                    CSC 302 Past Questions
-                  </span>
-                </div>
-                <p className="text-xs" style={{ color: theme.textSecondary }}>
-                  189 downloads this week
-                </p>
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02, x: 5 }}
-                className="w-full text-left p-3 rounded-xl transition-all duration-200"
-                style={{
-                  backgroundColor: theme.accentBg,
-                }}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <BookMarked className="w-4 h-4" style={{ color: theme.primary }} />
-                  <span className="text-sm font-semibold" style={{ color: theme.textPrimary}}>
-                    Database Study Guide 
-                  </span>
-                </div>
-
-                <p className="text-xs" style={{ color: theme.textSecondary }}>
-                  156 downloads this week
-                </p>
-              </motion.button>
             </div>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-white shadow-md flex items-center gap-2 cursor-pointer transition-all active:scale-95 shrink-0 self-start sm:self-center"
+              style={{ backgroundColor: theme.primary }}
+            >
+              <Upload className="w-4 h-4" />
+              Upload Resource
+            </button>
           </div>
-        </div>
-      </motion.div>
 
-      {/* Quick Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-        className="mt-4 rounded-2xl p-4 border"
-        style={{
-          backgroundColor: theme.cardBg,
-          borderColor: theme.border,
-        }}
-      >
-        <div className="flex items-center gap-2 mb-3">
-          <Star className="w-5 h-5" style={{ color: theme.accentLight }} />
-          <h3 className="font-bold text-sm" style={{ color: theme.textPrimary}}>
-            Your Activity
-          </h3>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span style={{ color: theme.textSecondary }}>Downloads</span>
-            <span className="font-semibold" style={{ color: theme.textPrimary }}>42</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span style={{ color: theme.textSecondary }}>Uploads</span>
-            <span className="font-semibold" style={{ color: theme.textPrimary }}>8</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span style={{ color: theme.textSecondary }}>Downloads</span>
-            <span className="font-semibold" style={{ color: theme.textPrimary }}>23</span>
-          </div>
-        </div>
-      </motion.div>
-    </motion.aside>
-
-    {/* Main Content */}
-    <main className="flex-1 min-w-0 min-h-screen p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="max-w-5xl mx-auto"
-      >
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-6 text-center"
-        >
-          <div className="inline-flex items-center gap-3 mb-3">
+          {/* Search Bar — Apple-style integrated pill */}
+          <div
+            className="flex items-center gap-3 px-4 py-2.5 sm:py-3 rounded-2xl shadow-sm mb-4 sm:mb-6"
+            style={{
+              backgroundColor: theme.cardBg,
+              border: "1px solid rgba(255, 255, 255, 0.07)",
+            }}
+          >
+            <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by title, course, or department..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 bg-transparent focus:outline-none text-xs sm:text-sm"
+              style={{ color: theme.textPrimary }}
+            />
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{
-                backgroundColor: theme.primary + "20",
-              }}
+              className="hidden md:flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-semibold"
+              style={{ backgroundColor: "rgba(255, 255, 255, 0.06)", color: theme.textMuted }}
             >
-              <Library className="w-7 h-7" style={{ color: theme.primary }} />
+              ⌘ K
             </div>
           </div>
-          <h1 className="text-4xl font-bold mb-2" style={{ color: theme.textPrimary }}>
-            Miva Resource Library
-          </h1>
-          <p className="text-lg" style={{ color: theme.textSecondary }}>
-            Your academic knowledge repository - Explore, learn, and share 
-          </p>
-        </motion.div>
 
-        {/* Search + Upload */}
-        <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="flex items-center gap-3 mb-4"
-            >
-              <div className="flex-1 relative">
-                <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
-                  style={{ color: theme.textMuted }}
-                />
-                <input
-                  type="text"
-                  placeholder="Search by course, topic, or keyword..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-200"
+          {/* Filters Row */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+            {/* Filter Tabs — Apple-style soft pill chips */}
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
+              {FILTER_TABS.map((tab) => {
+                const isActive = activeFilterTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveFilterTab(tab)}
+                    className="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all active:scale-95 cursor-pointer"
+                    style={{
+                      backgroundColor: isActive ? theme.primary + "25" : "rgba(255, 255, 255, 0.05)",
+                      color: isActive ? theme.primary : theme.textSecondary,
+                    }}
+                  >
+                    {tab}
+                    {tab === "My Resources" && myStudentResources.length > 0 && (
+                      <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">
+                        {myStudentResources.length}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Dropdowns — sleek rounded chips without harsh borders */}
+            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
+              {/* Level Dropdown */}
+              <div className="relative shrink-0">
+                <select
+                  value={selectedLevel}
+                  onChange={(e) => setSelectedLevel(e.target.value)}
+                  disabled={taxonomyLoading}
+                  className="appearance-none outline-none flex items-center gap-2 pl-3 pr-7 py-1.5 rounded-xl text-xs sm:text-sm cursor-pointer hover:bg-white/5 transition-colors"
                   style={{
                     backgroundColor: theme.cardBg,
-                    borderColor: theme.border,
-                    color: theme.textPrimary,
+                    border: "1px solid rgba(255, 255, 255, 0.07)",
+                    color: theme.textSecondary,
                   }}
-                />
+                >
+                  <option value="All">Level: All</option>
+                  {levels.map((level) => (
+                    <option key={level} value={level}>Level {level}</option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: theme.textSecondary }} />
               </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowUploadModal(true)}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold shrink-0"
-                style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
-              >
-                <Upload className="w-4 h-4" />
-                <span className="hidden sm:inline">Upload Resource</span>
-                <span className="sm:hidden">Upload</span>
-              </motion.button>
-            </motion.div>
-
-        {/* Filter Bar */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="rounded-2xl p-4 border mb-6"
-          style={{
-            backgroundColor: theme.cardBg,
-            borderColor: theme.border,
-          }}
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <Filter className="w-5 h-5" style={{ color: theme.accent }} />
-            <h3 className="font-bold" style={{ color: theme.textPrimary }}>
-              Filter Resources
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* Level Filter */}
-            <div className="relative">
-              <select 
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-appearance-none cursor-pointer focus:outline-none focus:ring-2 transition-all duration-200"
-                style={{
-                  backgroundColor: theme.input,
-                  borderColor: theme.border,
-                  color: theme.textPrimary,
-                }}
-              >
-                <option>All Levels</option>
-                <option>100 Level</option>
-                <option>200 Level</option>
-                <option>300 Level</option>
-                <option>400 Level</option>
-                <option>500 Level</option>
-              </select>
-              <ChevronDown 
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 pointer-events-none"
-                style={{ color: theme.textMuted }}
-              />
-            </div>
-
-            {/* Department Filter */}
-            <div className="relative">
-              <select
-                value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border appearance-none cursor-pointer focus:otline-none focus:ring-2 transition-all duration-200"
-                style={{
-                  backgroundColor: theme.input,
-                  borderColor: theme.border,
-                  color: theme.textPrimary,
-                }}
-              >
-                <option>All Departments</option>
-                <option>Computer Science</option>
-                <option>Mathematics</option>
-                <option>Physics</option>
-                <option>Chemistry</option>
-                <option>Biology</option>
-                <option>Engineering</option>
-              </select>
-              <ChevronDown 
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 pointer-events-none"
-                style={{ color: theme.textMuted }}
-              />
-            </div>
-
-            {/* Category Filter */}
-            <div className="relative">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border appearance-none cursor-pointer focus:outline-none focus:ring-2 transition-all duration-200"
-                style={{
-                  backgroundColor: theme.input,
-                  borderColor: theme.border,
-                  color: theme.textPrimary,
-                }}
-              >
-                <option>All Categories</option>
-                <option>Past Questions</option>
-                <option>Lecture Notes</option>
-                <option>Study Guides</option>
-                <option>Lab Manuals</option>
-                <option>Textbooks</option>
-              </select>
-              <ChevronDown 
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 pointer-events-none"
-                style={{ color: theme.textMuted }}
-              />
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Resource Grid */}
-        <div className="grid grid-cols-1 gap-6">
-          {MOCK_RESOURCES.map((resource, index) => (
-            <motion.article
-              key={resource.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              whileHover={{ y: -4 }}
-              className="rounded-2xl border overflow-hidden transition-all duration-300 hover:shadow-2xl"
-              style={{
-                backgroundColor: theme.cardBg,
-                borderColor: theme.border,
-              }}
-            >
-              {/* Book Cover Preview */}
-              <div className="flex flex-col md:flex-row">
-                <div className="md:w-48 shrink-0">
-                  <div 
-                    className="h-64 md:h-full relative overflow-hidden"
-                    style={{ backgroundColor: theme.accentBg }}
+              {/* Department Dropdown */}
+              <div className="relative shrink-0">
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                  disabled={taxonomyLoading}
+                  className="appearance-none outline-none flex items-center gap-2 pl-3 pr-7 py-1.5 rounded-xl text-xs sm:text-sm cursor-pointer hover:bg-white/5 transition-colors"
+                  style={{
+                    backgroundColor: theme.cardBg,
+                    border: "1px solid rgba(255, 255, 255, 0.07)",
+                    color: theme.textSecondary,
+                  }}
+                >
+                  <option value="All">Department: All</option>
+                  {departments.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: theme.textSecondary }} />
+              </div>
+              {/* File Type Dropdown */}
+              {!isMyResourcesTab && (
+                <div className="relative shrink-0">
+                  <select
+                    value={selectedFileType}
+                    onChange={(e) => setSelectedFileType(e.target.value)}
+                    className="appearance-none outline-none flex items-center gap-2 pl-3 pr-7 py-1.5 rounded-xl text-xs sm:text-sm cursor-pointer hover:bg-white/5 transition-colors"
+                    style={{
+                      backgroundColor: theme.cardBg,
+                      border: "1px solid rgba(255, 255, 255, 0.07)",
+                      color: theme.textSecondary,
+                    }}
                   >
-                    {resource.previewImage ? (
-                      <ImageWithFallback
-                        src={resource.previewImage}
-                        alt={resource.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <BookOpen className="w-16 h-16" style={{ color:theme.textMuted }}/>
-                      </div>
-                    )}
-                    {/* Category Badge Overlay */}
-                    <div
-                      className="absolute top-3 left-3 px-3 py-1 rounded-lg text-xs font-bold backdrop-blur-sm"
-                      style={{ 
-                        backgroundColor: theme.accent + "DD",
-                        color: "FFFFFF"
-                      }}
-                    >
-                      {resource.category}
-                    </div>
-                  </div>
+                    <option value="All">File Type: All</option>
+                    {FILE_FORMATS.map((format) => (
+                      <option key={format} value={format}>{format}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: theme.textSecondary }} />
                 </div>
-
-                {/* Resource Details */}
-                <div className="flex-1 p-6">
-                  {/* Title & Course */}
-                  <div className="mb-4">
-                    <h3 
-                      className="text-xl font-bold mb-2 leading-tight"
-                      style={{ color: theme.textPrimary }}
-                    >
-                      {resource.title}
-                    </h3>
-                    <div className="flex items-center gap-2 flex-wrap text-sm">
-                      <span
-                        className="font-bold px-2 py-1 rounded"
-                        style={{
-                          backgroundColor: theme.primary + "20",
-                          color: theme.primary,
-                        }}
-                      >
-                        {resource.courseCode}
-                      </span>
-                      <span style={{ color: theme.textSecondary }}>
-                        {resource.courseName}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Meta Information */}
-                  <div className="flex items-center gap-4 flex-wrap mb-4 text-sm">
-                    <div
-                      className="flex items-center gap-4 flex-wrap mb-4 text-sm"
-                      style={{ color: theme.textSecondary }}
-                    >
-                      <GraduationCap className="w-4 h-4"/>
-                      <span>Level {resource.level}</span>
-                    </div>
-                    <div 
-                      className="flex items-center gap-1.5"
-                      style={{ color: theme.textSecondary }}
-                    >
-                      <FolderOpen className="w-4 h-4" />
-                      <span>{resource.department}</span>
-                    </div>
-                    <div
-                      className="flex items-center gap-1.5"
-                      style={{ color: theme.textSecondary }}
-                    >
-                      {getFileIcon(resource.fileType)}
-                      <span>{resource.fileType}</span>
-                    </div>
-                    <div
-                      className="flex items-center gap-1.5"
-                      style={{ color: theme.textSecondary }}
-                    >
-                      <Clock className="w-4 h-4"/>
-                      <span>{resource.timestamp}</span>
-                    </div>
-                  </div>
-
-                  {/* Upload Info */}
-                  <div className="mb-4 text-sm" style={{ color: theme.textMuted }}>
-                    Shared by {""}
-                    <span className="font-semibold" style={{ color: theme.textSecondary}}>
-                      {resource.uploadedBy}
-                    </span>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex items-center gap-6 mb-4 text-sm">
-                    <div className="flex items-center gap-1.5" style={{ color: theme.textSecondary }}>
-                      <ThumbsUp className="w-4 h-4" />
-                      <span className="font-semibold">{resource.stats.likes}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5" style={{ color: theme.textSecondary }}>
-                      <MessageCircle className="w-4 h-4" />
-                      <span className="font-semibold">{resource.stats.comments}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5" style={{ color: theme.textSecondary }}>
-                      <Eye className="w-4 h-4" />
-                      <span className="font-semibold">{resource.stats.views}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5" style={{ color: theme.textSecondary }}>
-                      <Download className="w-4 h-4" />
-                      <span className="font-semibold">{resource.stats.downloads}</span>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-3">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex-1 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
-                      style={{
-                        backgroundColor: theme.primary,
-                        color: "FFFFFF"
-                      }}
-                    >
-                      <Download className="w-4 h-4" />
-                      Download
-                    </motion.button>
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex-1 px-4 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 border"
-                      style={{ 
-                        backgroundColor: "transparent",
-                        borderColor: theme.border,
-                        color: theme.textPrimary,
-                      }}
-                    > 
-                      <Eye className="w-4 h-4" />
-                      Preview
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-            </motion.article>
-          ))}
+              )}
+            </div>
+          </div>
         </div>
-      </motion.div>
-    </main>
-    </div>
 
-    <UploadResourceModal
-      open={showUploadModal}
-      onClose={() => setShowUploadModal(false)}
-      theme={theme}
-    />
-  </div>
-  )
+        {/* Main Content Layout */}
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
+          {/* Left Column: Resource Grid */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-bold flex items-center gap-2" style={{ color: theme.textPrimary }}>
+                {isMyResourcesTab ? "My Uploaded Resources" : "Recommended for You"}
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+              </h2>
+            </div>
+
+            {/* ================= MY RESOURCES TAB ================= */}
+            {isMyResourcesTab && (
+              <>
+                {myResourcesLoading && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Array.from({ length: 2 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="rounded-3xl p-5 h-48 animate-pulse"
+                        style={{ backgroundColor: theme.cardBg }}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {!myResourcesLoading && myResourcesError && (
+                  <div
+                    className="rounded-3xl p-8 text-center"
+                    style={{ backgroundColor: theme.cardBg, border: "1px solid rgba(255, 255, 255, 0.07)" }}
+                  >
+                    <AlertTriangle className="w-6 h-6 mx-auto mb-2 text-rose-400" />
+                    <p className="text-sm font-semibold mb-1" style={{ color: theme.textPrimary }}>
+                      Couldn't load your uploads
+                    </p>
+                    <button
+                      onClick={() => refetchMyResources()}
+                      className="mt-3 px-4 py-2 rounded-xl text-xs font-semibold"
+                      style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                )}
+
+                {!myResourcesLoading && !myResourcesError && myStudentResources.length === 0 && (
+                  <div
+                    className="rounded-3xl p-8 sm:p-12 text-center shadow-sm"
+                    style={{ backgroundColor: theme.cardBg, border: "1px solid rgba(255, 255, 255, 0.07)" }}
+                  >
+                    <div
+                      className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-sm"
+                      style={{ backgroundColor: "rgba(255, 255, 255, 0.05)" }}
+                    >
+                      <Upload className="w-6 h-6 text-slate-400" />
+                    </div>
+                    <h3 className="text-base sm:text-lg font-bold mb-1" style={{ color: theme.textPrimary }}>
+                      No uploaded resources yet
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-400 max-w-sm mx-auto mb-5">
+                      Upload your lecture notes, study guides, or past questions to earn XP and help fellow Hubblites.
+                    </p>
+                    <button
+                      onClick={() => setShowUploadModal(true)}
+                      className="px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-white shadow-md cursor-pointer transition-all active:scale-95"
+                      style={{ backgroundColor: theme.primary }}
+                    >
+                      Upload a Resource
+                    </button>
+                  </div>
+                )}
+
+                {!myResourcesLoading && filteredMyResources.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredMyResources.map((item, index) => (
+                      <MyResourceCard
+                        key={item.id}
+                        resource={item}
+                        theme={theme}
+                        index={index}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ================= STANDARD LIBRARY RESOURCES ================= */}
+            {!isMyResourcesTab && (
+              <>
+                {isLoading && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="rounded-3xl p-5 h-64 animate-pulse"
+                        style={{ backgroundColor: theme.cardBg }}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {!isLoading && isError && (
+                  <div
+                    className="rounded-3xl p-10 flex flex-col items-center justify-center text-center shadow-sm"
+                    style={{ backgroundColor: theme.cardBg, border: "1px solid rgba(255, 255, 255, 0.07)" }}
+                  >
+                    <div className="w-12 h-12 rounded-full mb-3 flex items-center justify-center" style={{ backgroundColor: theme.accentBg }}>
+                      <AlertTriangle className="w-5 h-5" style={{ color: theme.textMuted }} />
+                    </div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.textPrimary }}>
+                      Couldn't load the Vault
+                    </p>
+                    <p className="text-xs mb-4" style={{ color: theme.textMuted }}>
+                      {getUserFriendlyError(error)}
+                    </p>
+                    <button
+                      onClick={() => refetch()}
+                      disabled={isRefetching}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer"
+                      style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
+                    >
+                      <RotateCw className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`} />
+                      {isRefetching ? "Retrying..." : "Try Again"}
+                    </button>
+                  </div>
+                )}
+
+                {!isLoading && !isError && isEmpty && (
+                  <div
+                    className="rounded-3xl p-10 flex flex-col items-center justify-center text-center shadow-sm"
+                    style={{ backgroundColor: theme.cardBg, border: "1px solid rgba(255, 255, 255, 0.07)" }}
+                  >
+                    <div className="w-12 h-12 rounded-full mb-3 flex items-center justify-center" style={{ backgroundColor: theme.accentBg }}>
+                      <Inbox className="w-5 h-5" style={{ color: theme.textMuted }} />
+                    </div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.textPrimary }}>
+                      No resources yet
+                    </p>
+                    <p className="text-xs" style={{ color: theme.textMuted }}>
+                      No approved resources match your level and department yet.
+                    </p>
+                  </div>
+                )}
+
+                {noFilterMatches && (
+                  <div
+                    className="rounded-3xl p-10 flex flex-col items-center justify-center text-center shadow-sm"
+                    style={{ backgroundColor: theme.cardBg, border: "1px solid rgba(255, 255, 255, 0.07)" }}
+                  >
+                    <div className="w-12 h-12 rounded-full mb-3 flex items-center justify-center" style={{ backgroundColor: theme.accentBg }}>
+                      <Inbox className="w-5 h-5" style={{ color: theme.textMuted }} />
+                    </div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.textPrimary }}>
+                      No resources match your filters
+                    </p>
+                    <p className="text-xs mb-4" style={{ color: theme.textMuted }}>
+                      Try adjusting or clearing your filters.
+                    </p>
+                    {hasActiveFilters && (
+                      <button
+                        onClick={clearFilters}
+                        className="px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:brightness-110 cursor-pointer"
+                        style={{ backgroundColor: theme.primary, color: "#FFFFFF" }}
+                      >
+                        Clear filters
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {!isLoading && !isError && !isEmpty && filteredResources.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredResources.map((resource, index) => (
+                      <motion.div
+                        key={resource.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: index * 0.04 }}
+                      >
+                        <VaultResourceCard resource={resource} theme={theme} />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Right Column: Sidebar */}
+          <div className="w-full lg:w-80 shrink-0 space-y-5 sm:space-y-6">
+            {/* My Favorites (Empty State) */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-xs sm:text-sm" style={{ color: theme.textPrimary }}>
+                  My Favorites
+                </h3>
+                <Heart className="w-4 h-4" style={{ color: theme.textSecondary }} />
+              </div>
+              <div
+                className="rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center text-center shadow-sm"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  border: "1px solid rgba(255, 255, 255, 0.07)",
+                }}
+              >
+                <div className="w-10 h-10 rounded-2xl mb-2.5 flex items-center justify-center" style={{ backgroundColor: "rgba(255, 255, 255, 0.05)" }}>
+                  <Heart className="w-4 h-4" style={{ color: theme.textMuted }} />
+                </div>
+                <p className="text-xs sm:text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>No favorites yet</p>
+                <p className="text-[11px] leading-relaxed" style={{ color: theme.textMuted }}>
+                  Click the heart icon on any resource to save it here for quick access later.
+                </p>
+              </div>
+            </div>
+
+            {/* Recently Viewed (Empty State) */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-xs sm:text-sm" style={{ color: theme.textPrimary }}>
+                  Recently Viewed
+                </h3>
+              </div>
+              <div
+                className="rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center text-center shadow-sm"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  border: "1px solid rgba(255, 255, 255, 0.07)",
+                }}
+              >
+                <div className="w-10 h-10 rounded-2xl mb-2.5 flex items-center justify-center" style={{ backgroundColor: "rgba(255, 255, 255, 0.05)" }}>
+                  <History className="w-4 h-4" style={{ color: theme.textMuted }} />
+                </div>
+                <p className="text-xs sm:text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>No history</p>
+                <p className="text-[11px] leading-relaxed" style={{ color: theme.textMuted }}>
+                  Resources you view or preview will appear here so you can easily find them again.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <UploadResourceModal
+        open={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        theme={theme}
+      />
+    </div>
+  );
 }

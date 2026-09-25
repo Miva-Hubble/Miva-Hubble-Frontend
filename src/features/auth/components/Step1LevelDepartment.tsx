@@ -1,0 +1,315 @@
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, Search, X, AlertTriangle } from "lucide-react";
+import type { AskTheme } from "../../ask/constants/theme";
+import { useTaxonomy } from "../../../hooks/useTaxonomy";
+import ContinueButton from "./ContinueButton";
+
+interface Step1LevelDepartmentProps {
+  theme: AskTheme;
+  currentLevel: string;
+  department: string;
+  onLevelChange: (level: string) => void;
+  onDepartmentChange: (department: string) => void;
+  onContinue: () => void;
+}
+
+const Step1LevelDepartment = ({
+  theme,
+  currentLevel,
+  department,
+  onLevelChange,
+  onDepartmentChange,
+  onContinue,
+}: Step1LevelDepartmentProps) => {
+  const { levels, departments, isLoading, isError, refetch } = useTaxonomy();
+  const [searchQuery, setSearchQuery] = useState(department);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const departmentInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [prevDepartment, setPrevDepartment] = useState(department);
+  if (department !== prevDepartment) {
+    setPrevDepartment(department);
+    setSearchQuery(department);
+  }
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredDepartments = departments.filter((dept) =>
+    dept.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const handleLevelSelect = (level: string | number) => {
+    onLevelChange(String(level));
+  };
+
+  const handleDepartmentSelect = (dept: string) => {
+    onDepartmentChange(dept);
+    setSearchQuery(dept);
+    setIsDropdownOpen(false);
+  };
+
+  const handleClearDepartment = () => {
+    onDepartmentChange("");
+    setSearchQuery("");
+    departmentInputRef.current?.focus();
+  };
+
+  // Persist only canonical taxonomy values returned by the backend. This
+  // protects onboarding from stale local values that would not match Vault.
+  const isComplete = levels.includes(currentLevel) && departments.includes(department);
+
+  if (isError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center text-center gap-3">
+        <AlertTriangle className="h-6 w-6" style={{ color: theme.textMuted }} />
+        <p className="text-sm" style={{ color: theme.textSecondary }}>
+          Couldn't load levels and departments.
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="text-sm font-semibold underline cursor-pointer"
+          style={{ color: theme.primary }}
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-1 flex-col">
+      <div className="flex-1">
+        <h1
+          className="mb-2 text-2xl font-bold"
+          style={{ color: theme.textPrimary }}
+        >
+          Let's personalize your campus experience
+        </h1>
+        <p
+          className="mb-8 text-sm leading-relaxed"
+          style={{ color: theme.textSecondary }}
+        >
+          We'll show resources, discussions, and students relevant to your
+          level and department.
+        </p>
+
+        <div className="mb-8">
+          <p
+            className="mb-3 text-xs font-medium tracking-wider"
+            style={{ color: theme.textMuted }}
+          >
+            YOUR LEVEL
+          </p>
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 rounded-xl animate-pulse"
+                  style={{ backgroundColor: theme.cardBg }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {levels.map((level) => {
+                const isSelected = String(currentLevel) === String(level);
+
+                return (
+                  <motion.button
+                    key={level}
+                    type="button"
+                    onClick={() => handleLevelSelect(level)}
+                    className="relative rounded-xl px-4 py-3.5 text-sm font-medium cursor-pointer"
+                    style={
+                      isSelected
+                        ? {
+                            border: `1px solid ${theme.primary}`,
+                            backgroundColor: theme.primary + "1A",
+                            color: theme.answerText,
+                          }
+                        : {
+                            border: `1px solid ${theme.border}`,
+                            backgroundColor: theme.cardBg,
+                            color: theme.tagText,
+                          }
+                    }
+                    animate={{ scale: isSelected ? 1.02 : 1 }}
+                    whileHover={{ scale: isSelected ? 1.02 : 1.015 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  >
+                    {level} Level
+                    <AnimatePresence>
+                      {isSelected && (
+                        <motion.span
+                          className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full"
+                          style={{ backgroundColor: theme.primary }}
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        >
+                          <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div ref={dropdownRef}>
+          <p
+            className="mb-3 text-xs font-medium tracking-wider"
+            style={{ color: theme.textMuted }}
+          >
+            DEPARTMENT
+          </p>
+          {isLoading ? (
+            <div
+              className="h-12 rounded-xl animate-pulse"
+              style={{ backgroundColor: theme.cardBg }}
+            />
+          ) : (
+            <div className="relative">
+              <Search
+                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2"
+                style={{ color: theme.textMuted }}
+              />
+              <input
+                ref={departmentInputRef}
+                type="text"
+                value={searchQuery}
+                placeholder="Search department..."
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsDropdownOpen(true);
+                  if (department && e.target.value !== department) {
+                    onDepartmentChange("");
+                  }
+                }}
+                onFocus={() => setIsDropdownOpen(true)}
+                className="w-full rounded-xl border py-3 pl-10 pr-10 text-sm transition-colors focus:outline-none"
+                style={{
+                  backgroundColor: theme.input,
+                  color: theme.textPrimary,
+                  borderColor: department ? theme.primary : theme.border,
+                }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearDepartment}
+                  aria-label="Clear department"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-70"
+                  style={{ color: theme.textMuted }}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          )}
+
+          <AnimatePresence>
+            {isDropdownOpen && !isLoading && (
+              <motion.div
+                className="mt-2 max-h-44 overflow-y-auto rounded-xl border backdrop-blur-sm"
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: theme.surface,
+                }}
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.7 }}
+              >
+                {filteredDepartments.length > 0 ? (
+                  filteredDepartments.map((dept) => (
+                    <motion.button
+                      key={dept}
+                      type="button"
+                      onClick={() => handleDepartmentSelect(dept)}
+                      className="w-full px-4 py-3 text-left text-sm cursor-pointer"
+                      style={{
+                        color:
+                          department === dept
+                            ? theme.answerText
+                            : theme.tagText,
+                        backgroundColor: "transparent",
+                      }}
+                      whileHover={{ backgroundColor: theme.cardBg }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      {dept}
+                    </motion.button>
+                  ))
+                ) : (
+                  <p
+                    className="px-4 py-3 text-sm"
+                    style={{ color: theme.textMuted }}
+                  >
+                    No departments found
+                  </p>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {department && (
+              <motion.div
+                className="mt-3 flex items-center gap-1.5"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              >
+                <Check
+                  className="h-4 w-4"
+                  strokeWidth={2.5}
+                  style={{ color: theme.primary }}
+                />
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: theme.answerText }}
+                >
+                  {department}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <ContinueButton
+          theme={theme}
+          onClick={onContinue}
+          disabled={!isComplete}
+        >
+          Continue
+        </ContinueButton>
+      </div>
+    </div>
+  );
+};
+
+export default Step1LevelDepartment;

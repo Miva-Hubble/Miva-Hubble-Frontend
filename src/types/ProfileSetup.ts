@@ -1,6 +1,20 @@
+export type PreferredMode = "identified" | "anonymous";
+export type Gender = "male" | "female";
+
 export interface ProfileSetupData {
-  displayName: string;
-  department: string;
   currentLevel: string;
-  defaultMode: "anonymous" | "identified";
+  department: string;
+  goals: string[];
+  preferredMode: PreferredMode;
+  username: string;
+  gender: Gender | "";
+}
+
+export interface ProfileSetupPayload {
+  level: string;
+  department: string;
+  goals: string[];
+  preferredMode: PreferredMode;
+  username: string;
+  gender: Gender;
 }

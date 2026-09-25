@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { type ReactNode } from "react";
+import { motion } from "motion/react";
 
 type ButtonVariant = "primary" | "secondary" | "danger" | "outline";
 type ButtonSize = "sm" | "md" | "lg";
@@ -64,28 +65,26 @@ const CustomButton = ({
 
   if (route && !disabled) {
     return (
-      <Link
-        to={route}
-        className={combinedClassName}
-        title={title}
-        aria-label={ariaLabel}
-      >
-        {children}
-      </Link>
+      <motion.div whileHover={{ y: -2, scale: 1.02 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 420, damping: 22 }} className="inline-block">
+        <Link to={route} className={combinedClassName} title={title} aria-label={ariaLabel}>{children}</Link>
+      </motion.div>
     );
   }
 
   return (
-    <button
+    <motion.button
       type={type}
       onClick={onClick}
       disabled={disabled}
       className={combinedClassName}
       title={title}
       aria-label={ariaLabel}
+      whileHover={disabled ? undefined : { y: -2, scale: 1.02 }}
+      whileTap={disabled ? undefined : { scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 420, damping: 22 }}
     >
       {children}
-    </button>
+    </motion.button>
   );
 };
 

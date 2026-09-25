@@ -1,82 +1,213 @@
 import { useState } from "react";
-import { Navbar } from "../components/NavBar";
-import Step1Profile from "../components/Step1Profile";
-import Step2Mode from "../components/Step2Mode";
-import ProgressBar from "../../../components/ui/ProgressBar";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../hooks/useAuth";
+import { AnimatePresence, motion } from "framer-motion";
+import { getAskTheme } from "../../ask/constants/theme";
+import SetupHeader from "../components/SetupHeader";
+import Step1LevelDepartment from "../components/Step1LevelDepartment";
+import Step2Goals from "../components/Step2Goals";
+import Step3UsernameAndGender from "../components/Step3UsernameAndGender";
+import { MAX_GOALS } from "../../../constants/profile";
+import { useTaxonomy } from "../../../hooks/useTaxonomy";
+import { profileService } from "../../../services/profileService";
 import type { ProfileSetupData } from "../../../types/ProfileSetup";
+import type { AsyncStatus } from "../../../types/async";
+import {
+  getUserFriendlyError,
+  logTechnicalError,
+} from "../../../lib/errors/getUserFriendlyError";
+
+const TOTAL_STEPS = 3;
+
+// Slide-and-fade transition for step changes, direction-aware so that
+// moving forward glides left-to-right and moving back reverses smoothly.
+const stepVariants = {
+  enter: (direction: number) => ({
+    x: direction >= 0 ? 24 : -24,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction >= 0 ? -24 : 24,
+    opacity: 0,
+  }),
+};
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
+  const theme = getAskTheme(true);
   const [currentStep, setCurrentStep] = useState(1);
+  const [maxStepReached, setMaxStepReached] = useState(1);
+  const [direction, setDirection] = useState(1);
+  const [saveStatus, setSaveStatus] = useState<AsyncStatus>("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { levels, departments, isLoading: isTaxonomyLoading } = useTaxonomy();
+  const isSaving = saveStatus === "loading";
   const [formData, setFormData] = useState<ProfileSetupData>({
-    displayName: "",
     department: "",
-    currentLevel: "100",
-    defaultMode: "anonymous",
+    currentLevel: "",
+    goals: [],
+    preferredMode: "anonymous",
+    username: "",
+    gender: "",
   });
 
-  const handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, displayName: e.target.value });
+  const goToStep = (step: number) => {
+    setDirection(step >= currentStep ? 1 : -1);
+    setCurrentStep(step);
+    setMaxStepReached((prev) => Math.max(prev, step));
   };
 
-  const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData({ ...formData, department: e.target.value });
-  };
-
-  const handleLevelChange = (level: string) => {
-    setFormData({ ...formData, currentLevel: level });
-  };
-
-  const handleModeChange = (mode: "anonymous" | "identified") => {
-    setFormData({ ...formData, defaultMode: mode });
-  };
-
-  const handleContinue = () => {
+  const handleBack = () => {
     if (currentStep === 1) {
-      if (!formData.displayName || !formData.department) {
-        alert("Please fill in all fields");
-        return;
-      }
-      setCurrentStep(2);
-    } else if (currentStep === 2) {
-      handleCompleteSetup();
+      navigate("/");
+    } else {
+      goToStep(currentStep - 1);
     }
   };
 
-  const handleCompleteSetup = () => {
-    console.log("Profile setup completed:", formData);
-    // TODO: Call API to save profile data
-    navigate("/dashboard");
+  // Lets the user move freely between the 1st, 2nd, and 3rd steps (and back)
+  // via the progress indicator, without skipping ahead of what they've reached.
+  const handleStepClick = (step: number) => {
+    if (step === currentStep || step > maxStepReached) return;
+    goToStep(step);
+  };
+
+  const handleToggleGoal = (goal: string) => {
+    setFormData((prev) => {
+      const isSelected = prev.goals.includes(goal);
+
+      if (isSelected) {
+        return { ...prev, goals: prev.goals.filter((g) => g !== goal) };
+      }
+
+      if (prev.goals.length >= MAX_GOALS) return prev;
+
+      return { ...prev, goals: [...prev.goals, goal] };
+    });
+  };
+
+  const handleComplete = async () => {
+    if (isSaving) return; // guard against double-submits (e.g. double-click)
+
+    if (isTaxonomyLoading) {
+      setErrorMessage("We are still loading the available levels and departments. Please try again in a moment.");
+      return;
+    }
+
+    if (
+      !levels.includes(formData.currentLevel) ||
+      !departments.includes(formData.department)
+    ) {
+      setErrorMessage("Choose a valid level and department before completing your profile.");
+      setCurrentStep(1);
+      return;
+    }
+
+    setSaveStatus("loading");
+    setErrorMessage(null);
+
+    try {
+      await profileService.saveProfile({
+        currentLevel: formData.currentLevel,
+        department: formData.department,
+        goals: formData.goals,
+        preferredMode: formData.preferredMode,
+        username: formData.username,
+        gender: formData.gender,
+      });
+
+      setSaveStatus("success");
+      // Refresh the cached user object BEFORE navigating — ProtectedRoute and
+      // OnboardingRoute both gate on user.isOnboarded from useAuth's context,
+      // which was last fetched before onboarding completed. Without this,
+      // navigate("/dashboard") hits ProtectedRoute with a stale
+      // isOnboarded: false, bounces to /profile-setup, and OnboardingRoute
+      // (reading the same stale user) renders this page again instead of
+      // redirecting onward — the user never actually leaves onboarding.
+      await refreshUser();
+      navigate("/dashboard");
+    } catch (error) {
+      logTechnicalError("[ProfileSetup] Failed to save profile:", error);
+      setErrorMessage(getUserFriendlyError(error));
+      setSaveStatus("error");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div
+      className="min-h-screen font-sans"
+      style={{ backgroundColor: theme.bg, color: theme.textPrimary }}
+    >
+      <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col px-5 pb-8 pt-6">
+        <SetupHeader
+          theme={theme}
+          currentStep={currentStep}
+          totalSteps={TOTAL_STEPS}
+          maxStepReached={maxStepReached}
+          onBack={handleBack}
+          onStepClick={handleStepClick}
+        />
 
-      <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-6">
-        <div className="w-full max-w-full md:max-w-[50%] lg:max-w-[50%]">
-          <div className="my-6 pt-6 md:my-8 md:pt-8">
-            <ProgressBar currentStep={currentStep} totalSteps={2} />
-          </div>
+        <div className="mt-8 flex flex-1 flex-col overflow-hidden">
+          <AnimatePresence mode="wait" custom={direction} initial={false}>
+            <motion.div
+              key={currentStep}
+              custom={direction}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: "spring", stiffness: 340, damping: 32, mass: 0.9 }}
+              className="flex flex-1 flex-col"
+            >
+              {currentStep === 1 && (
+                <Step1LevelDepartment
+                  theme={theme}
+                  currentLevel={formData.currentLevel}
+                  department={formData.department}
+                  onLevelChange={(level) =>
+                    setFormData((prev) => ({ ...prev, currentLevel: level }))
+                  }
+                  onDepartmentChange={(department) =>
+                    setFormData((prev) => ({ ...prev, department }))
+                  }
+                  onContinue={() => goToStep(2)}
+                />
+              )}
 
-          <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
-            {currentStep === 1 ? (
-              <Step1Profile
-                formData={formData}
-                onDisplayNameChange={handleDisplayNameChange}
-                onDepartmentChange={handleDepartmentChange}
-                onLevelChange={handleLevelChange}
-                onContinue={handleContinue}
-              />
-            ) : (
-              <Step2Mode
-                formData={formData}
-                onModeChange={handleModeChange}
-                onComplete={handleContinue}
-              />
-            )}
-          </div>
+              {currentStep === 2 && (
+                <Step2Goals
+                  theme={theme}
+                  selectedGoals={formData.goals}
+                  onToggleGoal={handleToggleGoal}
+                  onContinue={() => goToStep(3)}
+                />
+              )}
+
+              {currentStep === 3 && (
+                <Step3UsernameAndGender
+                  theme={theme}
+                  username={formData.username}
+                  gender={formData.gender}
+                  onUsernameChange={(val) =>
+                    setFormData((prev) => ({ ...prev, username: val }))
+                  }
+                  onGenderChange={(val) =>
+                    setFormData((prev) => ({ ...prev, gender: val }))
+                  }
+                  onFinish={handleComplete}
+                  isSaving={isSaving}
+                  errorMessage={errorMessage}
+                  onRetry={handleComplete}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

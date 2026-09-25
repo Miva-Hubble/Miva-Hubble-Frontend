@@ -1,12 +1,16 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, type ImgHTMLAttributes } from "react";
+import { useState, useEffect, type ImgHTMLAttributes } from "react";
+import { useSearchParams } from "react-router-dom";
 import { authService } from "../services/authService";
+import GoogleAuthButton from "../features/auth/components/GoogleAuthButton";
 import {
   Users,
   MessageCircle,
   GraduationCap,
   BookOpen,
   Zap,
+  AlertOctagon,
+  X
 } from "lucide-react";
 
 function ImageWithFallback({
@@ -29,20 +33,70 @@ function ImageWithFallback({
 
 export default function LandingPage() {
   const [isSignIn, setIsSignIn] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [authError, setAuthError] = useState("");
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+
+  // Listen for backend error redirects
+  // Listen for backend error redirects
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    
+    if (errorParam) {
+      // 1. Clean the URL so the error doesn't persist if they refresh the page
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("error");
+      setSearchParams(newParams, { replace: true });
+
+      // 2. Wrap the state update to make it asynchronous (Fixes the cascading render warning)
+      setTimeout(() => {
+        setAuthError("Access denied. Please sign in using your official Miva University email address.");
+      }, 0);
+
+      // 3. Auto-dismiss the toast after 6 seconds
+      const timer = setTimeout(() => setAuthError(""), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleGoogleAuth = () => {
-    // Redirect user to backend Google routes
-    if (isSignIn) {
-      console.log("Redirecting to Google Sign In...");
-      authService.initiateAuth(); // Calling the redirect
-      } else {
-      console.log("Redirecting to Google  Sign Up...");
-      authService.initiateAuth(); 
-          }
+    setIsAuthLoading(true);
+    setAuthError("");
+    authService.initiateAuth();
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b1120] text-slate-300 font-sans selection:bg-teal-500/30">
+    <div className="min-h-screen flex flex-col bg-[#0b1120] text-slate-300 font-sans selection:bg-teal-500/30 relative">
+      
+      {/* 🚨 ERROR TOAST NOTIFICATION 🚨 */}
+      <AnimatePresence>
+        {authError && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 24, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed top-0 left-1/2 -translate-x-1/2 z-100 w-[90%] max-w-md bg-[#1e293b] border border-red-500/50 shadow-[0_10px_40px_rgba(239,68,68,0.15)] rounded-2xl p-4 flex items-start gap-3"
+          >
+            <div className="bg-red-500/10 p-2 rounded-lg shrink-0 mt-0.5">
+              <AlertOctagon className="w-5 h-5 text-red-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-white mb-1">Authentication Failed</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                {authError}
+              </p>
+            </div>
+            <button 
+              onClick={() => setAuthError("")}
+              className="shrink-0 p-1 hover:bg-slate-800 rounded-md transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4 text-slate-500" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Main Content Area */}
       <div className="flex-1 w-full max-w-7xl mx-auto px-6 py-12 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-8">
         
@@ -224,20 +278,19 @@ export default function LandingPage() {
                 </motion.div>
               </AnimatePresence>
 
+              {/* Error Message */}
+              {authError && (
+                <div className="mb-4 p-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-xs font-medium leading-relaxed">
+                  {authError}
+                </div>
+              )}
+              
               {/* Action Button */}
-              <button
-                type="button"
+              <GoogleAuthButton
+                isSignIn={isSignIn}
+                isLoading={isAuthLoading}
                 onClick={handleGoogleAuth}
-                className="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-xl text-sm font-bold bg-[#e2e8f0] text-slate-900 hover:bg-white transition-all hover:scale-[1.02] active:scale-[0.98] mb-6"
-              >
-                <ImageWithFallback
-                  src="https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
-                  fallbackSrc="https://developers.google.com/static/identity/images/g-logo.png"
-                  alt="Google logo"
-                  className="w-5 h-5 object-contain"
-                />
-                {isSignIn ? "Sign in with Google" : "Sign up with Google"}
-              </button>
+              />
 
               {/* Toggle Text */}
               <div className="text-center text-sm font-medium mb-12">
@@ -245,8 +298,11 @@ export default function LandingPage() {
                   {isSignIn ? "Don't have an account? " : "Already have an account? "}
                 </span>
                 <button
-                  onClick={() => setIsSignIn(!isSignIn)}
-                  className="font-bold text-[#38bdf8] hover:text-sky-400 hover:underline transition-colors ml-1"
+                  onClick={() => {
+                    setAuthError("");
+                    setIsSignIn(!isSignIn);
+                  }}
+                  className="font-bold text-[#38bdf8] hover:text-sky-400 hover:underline transition-colors ml-1 cursor-pointer"
                 >
                   {isSignIn ? "Sign up" : "Sign in"}
                 </button>
