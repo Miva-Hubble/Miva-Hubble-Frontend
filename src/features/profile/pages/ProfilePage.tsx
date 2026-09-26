@@ -13,6 +13,7 @@ import {
   XCircle,
   Archive,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../components/feedback/ToastProvider";
@@ -283,7 +284,7 @@ function InlineEditForm({
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { progress } = useMyProgress();
   const { resources } = useMyStudentResources();
   const { departments, isLoading: isTaxonomyLoading } = useTaxonomy();
@@ -299,6 +300,18 @@ export default function ProfilePage() {
   const theme = getDashboardTheme(isDark);
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } catch (err) {
+      console.error("Failed to log out", err);
+      setIsLoggingOut(false);
+    }
+  };
 
   const rank = progress?.rank?.name || "Novice";
   const avatarUrl = getAvatarAsset(user?.gender, rank);
@@ -402,6 +415,7 @@ export default function ProfilePage() {
               {isEditing ? <X className="w-3.5 h-3.5" /> : <Pencil className="w-3.5 h-3.5" />}
               {isEditing ? "Cancel" : "Edit Profile"}
             </button>
+         
           </div>
         </div>
 
@@ -473,7 +487,76 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+
+        {/* Settings & Danger Zone */}
+        <div className="mt-12 pt-6 border-t" style={{ borderColor: theme.border}}>
+          <h2 className="text-sm font-bold opacity-70 mb-3" style={{ color: theme.textPrimary }}>
+            Account Settings
+          </h2>
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            className="w-full py-4 rounded-2xl text-sm font-semibold flex items-center justify-between px-5 transition-all active:scale-95 border border-red-500/20 text-red-400 hover:bg-red-500/10"
+            style={{ backgroundColor: theme.cardBg }}
+          >
+            <div className="flex items-center gap-3">
+              <LogOut className="w-4 h-4" />
+              <span>Log out of Miva Hubble</span>
+            </div>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 backdrop-blur-sm bg-black/40"
+              onClick={() => !isLoggingOut && setShowLogoutConfirm(false)}
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-sm rounded-3xl p-6 shadow-2xl"
+              style={{ backgroundColor: theme.surface, border: `1px solid ${theme.border}` }}
+            >
+              <h3 className="text-lg font-bold mb-2" style={{ color: theme.textPrimary }}>
+                Log Out?
+              </h3>
+              <p className="text-sm opacity-70 mb-6 leading-relaxed" style={{ color: theme.textSecondary }}>
+                Are you sure you want to log out of your account? 
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  disabled={isLoggingOut}
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+                  style={{ backgroundColor: theme.border, color: theme.textSecondary }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all 
+                  active:scale-95 disabled:opacity-50 bg-red-500 text-white hover:bg-red-600"
+                >
+                  {isLoggingOut ? "Logging out..." : "Yes, log out"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

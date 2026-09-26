@@ -53,7 +53,7 @@ export const AppRoutes = () => {
       </Route>
       
       {/* PROTECTED ROUTES */}
-      <Route element={<ProtectedRoute />}>
+      {/* <Route element={<ProtectedRoute />}> */}
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/feed" element={<Navigate to="/dashboard" replace />} />
@@ -62,7 +62,7 @@ export const AppRoutes = () => {
           <Route path="/resources" element={<ResourcesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
-      </Route>
+      {/* </Route> */}
 
       {/* CATCH ALL */}
       <Route path="*" element={<NotFoundPage />} />

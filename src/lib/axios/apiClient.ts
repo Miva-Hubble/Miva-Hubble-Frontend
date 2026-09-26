@@ -181,7 +181,7 @@ apiClient.interceptors.response.use(
       if (isSessionExpired) {
         // Hard redirect clears in-memory state and forces a clean re-auth.
         // Avoid redirecting if already on public paths to prevent infinite reload loops.
-        const publicPaths = ["/", "/auth-callback"];
+        const publicPaths = ["/", "/auth-callback", "/profile"];
         if (!publicPaths.includes(window.location.pathname)) {
           window.location.href = "/";
         }
