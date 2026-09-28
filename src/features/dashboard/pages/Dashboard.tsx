@@ -11,6 +11,7 @@ import { useMyStudentResources } from "../../resources/hooks/useMyStudentResourc
 import { academicWings } from "../constants/dashboardMockData";
 import { useAuth } from "../../../hooks/useAuth";
 import { useGreeting } from "../../../hooks/useGreeting";
+import { Joyride, STATUS } from 'react-joyride';
 
 // Mirrors the backend's getLagosCalendarDate (Intl.DateTimeFormat with
 // timeZone: "Africa/Lagos") so the quest-step checklist resets on the same
@@ -41,9 +42,102 @@ export default function Dashboard() {
   const greeting = useGreeting(user?.username ?? undefined);
   const progress = progressQuery.progress;
 
+  // --- Onboarding Tour ---
+  const [runTour, setRunTour] = useState(() => {
+    return localStorage.getItem("hasSeenDashboardTour") !== "true";
+  });
+
+    const tourSteps = [
+    {
+      target: 'body',
+      placement: 'center', // Centers it on the screen like a modal!
+      title: "Welcome to Miva Hubble! 🎉",
+      content: "Let's take a quick tour to help you get started.",
+      disableBeacon: true,
+    },
+    {
+      target: '.tour-actions',
+      title: 'Quick Actions',
+      content: 'Your all-in-one library. You can quickly jump into the Vault or upload a resource right from here.',
+      disableBeacon: true,
+    },
+    {
+      target: '.tour-goals',
+      title: 'Track Your Progress',
+      content: 'Uploading and submitting resources earns you XP to rank up and build your streak!',
+      disableBeacon: true,
+    },
+    {
+      target: '.tour-trending',
+      title: 'Trending Resources',
+      content: "See what's hot in the community. These are the most downloaded and highly rated resources this week.",
+      disableBeacon: true,
+    },
+    {
+      target: '.tour-leaderboard',
+      title: 'Global Leaderboard',
+      content: 'Compete with your peers! The most active scholars appear here.',
+      disableBeacon: true,
+    }
+  ];
+
+  const handleJoyrideCallback = (data: any) => {
+    const { status } = data;
+    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+
+    if (finishedStatuses.includes(status)) {
+      setRunTour(false);
+      localStorage.setItem("hasSeenDashboardTour", "true");
+    }
+  };
+
   return (
     <div className="min-h-screen font-sans pb-20" style={{ backgroundColor: theme.bg, color: theme.textPrimary }}>
       <main className="pt-4 sm:pt-8 space-y-6 sm:space-y-8">
+
+        {/* Rendering the Tour */}
+                {/* @ts-ignore */}
+        <Joyride
+          steps ={tourSteps as any} 
+          run={runTour}
+          continuous={true}
+          onEvent={handleJoyrideCallback}
+          locale={{ last: "Explore!" }}
+          styles={{
+            tooltip: {
+              backgroundColor: theme.surface,
+              color: theme.textPrimary,
+              borderRadius: '16px',
+            },
+            tooltipContainer: {
+              textAlign: 'left'
+            },
+            tooltipTitle: {
+              color: theme.textPrimary,
+              fontSize: '16px',
+              fontWeight: 'bold'
+            },
+            tooltipContent: {
+              color: theme.textSecondary,
+              padding: '10px 0'
+            },
+            buttonNext: {
+              backgroundColor: theme.primary,
+              color: '#ffffff',
+              borderRadius: '8px',
+              fontWeight: 'bold'
+            },
+            buttonBack: {
+              color: theme.textSecondary,
+              marginRight: '10px'
+            },
+            options: {
+              arrowColor: theme.surface,
+              overlayColor: 'rgba(0, 0, 0, 0.6)'
+            }
+          } as any}
+        />
+
         <section className="w-full px-3 sm:px-6 lg:px-8">
           <div
             className="relative w-full rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 overflow-hidden"
@@ -63,7 +157,7 @@ export default function Dashboard() {
                   Every resource you need, <span style={{ color: theme.primary }}>all in one place.</span>
                 </h1>
 
-                <div className="flex flex-wrap gap-2.5 sm:gap-3 mt-8 sm:mt-10">
+                <div className="tour-actions flex flex-wrap gap-2.5 sm:gap-3 mt-8 sm:mt-10">
                   <motion.div whileHover={{ y: -2, scale: 1.03 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 420, damping: 22 }}>
                     <Link
                       to="/resources"
@@ -123,7 +217,7 @@ export default function Dashboard() {
               Trending This Week
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              <div className="lg:col-span-2 space-y-3">
+              <div className="tour-trending lg:col-span-2 space-y-3">
                 {feed?.trending?.items?.length ? (
                   feed.trending.items.slice(0, 3).map((item) => (
                     <article key={item.id} className="rounded-2xl p-4 sm:p-5" style={{ backgroundColor: theme.surface }}>
@@ -147,7 +241,7 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-              <aside className="rounded-2xl p-4 sm:p-5 h-fit" style={{ backgroundColor: theme.surface }}>
+              <aside className="tour-leaderboard rounded-2xl p-4 sm:p-5 h-fit" style={{ backgroundColor: theme.surface }}>
                 <h3 className="font-bold text-xs sm:text-sm">♜ Top Masters</h3>
                 {feed?.topMasters?.items?.length ? (
                   <div className="mt-4 space-y-3">
@@ -245,7 +339,7 @@ function GoalCard({
 
   return (
     <div
-      className="w-full lg:w-[410px] flex flex-col justify-between transition-all pt-6 lg:pt-0 p-0 sm:p-5 lg:p-6 rounded-none lg:rounded-[28px] shadow-none lg:shadow-xl bg-transparent lg:bg-[var(--card-bg)]"
+      className="tour-goals w-full lg:w-[410px] flex flex-col justify-between transition-all pt-6 lg:pt-0 p-0 sm:p-5 lg:p-6 rounded-none lg:rounded-[28px] shadow-none lg:shadow-xl bg-transparent lg:bg-[var(--card-bg)]"
       style={{
         ["--card-bg" as string]: theme.cardBg,
       }}
