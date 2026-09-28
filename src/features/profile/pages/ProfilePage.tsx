@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import {
   ArrowLeft,
   Pencil,
@@ -289,15 +289,8 @@ export default function ProfilePage() {
   const { resources } = useMyStudentResources();
   const { departments, isLoading: isTaxonomyLoading } = useTaxonomy();
 
-  // Theme — read from localStorage same way Dashboard does
-  const [isDark] = useState(() => {
-    try {
-      return localStorage.getItem("hubble-dark-mode") !== "false";
-    } catch {
-      return true;
-    }
-  });
-  const theme = getDashboardTheme(isDark);
+  const { isDarkMode } = useOutletContext<{ isDarkMode: boolean }>();
+  const theme = getDashboardTheme(isDarkMode);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -354,7 +347,7 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center">
           {/* Avatar with gradient ring */}
           <div className="relative mb-4">
-            <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${rankGradient} p-[3px] shadow-xl`}>
+            <div className={`w-24 h-24 mb-5 rounded-full bg-gradient-to-br ${rankGradient} p-[3px] shadow-xl`}>
               <div
                 className="w-full h-full rounded-full overflow-hidden"
                 style={{ backgroundColor: theme.surface }}
